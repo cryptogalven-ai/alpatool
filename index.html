@@ -814,9 +814,11 @@ function add(){
  if(!Number.isFinite(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre positif.");fields.qty.focus();return}
  if(!Number.isFinite(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre positif.");fields.min.focus();return}
  const newRef=fields.ref.value.trim();
- if(editingRef!==null && newRef!==editingRef && data.some(t=>t.ref===newRef)){alert("Cette référence existe déjà.");fields.ref.focus();return}
- const x={ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:fields.orderUrl.value.trim(),dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim()};
- if(editingRef!==null){
+ // Une référence interne doit être unique, à l’ajout comme à la modification.
+ if(data.some(t=>t.ref===newRef && t.ref!==editingRef)){alert("Cette référence existe déjà.");fields.ref.focus();return}
+ const existingTool=editingRef!==null?data.find(t=>t.ref===editingRef):null;
+ const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:fields.orderUrl.value.trim(),dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
+ if(existingTool){
   const index=data.findIndex(t=>t.ref===editingRef);
   if(index>=0)data[index]=x;else data.push(x);
  }else data.push(x);
