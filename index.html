@@ -809,15 +809,24 @@ function add(){
   if(!el || !String(el.value).trim()){alert("Le champ « "+label+" » est obligatoire.");if(el)el.focus();return}
  }
  const priceValue=Number(fields.price.value),qtyValue=Number(fields.qty.value),minValue=Number(fields.min.value);
- const leadValue=fields.lead.value===""?"":Math.max(0,Math.floor(Number(fields.lead.value)));
+ const leadRaw=fields.lead.value.trim();
+ const leadNumber=leadRaw===""?null:Number(leadRaw);
+ const leadValue=leadRaw===""?"":leadNumber;
+ const orderUrlValue=fields.orderUrl.value.trim();
  if(!Number.isFinite(priceValue)||priceValue<0){alert("Le prix doit être un nombre positif.");fields.price.focus();return}
- if(!Number.isFinite(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre positif.");fields.qty.focus();return}
- if(!Number.isFinite(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre positif.");fields.min.focus();return}
+ if(!Number.isInteger(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre entier positif ou nul.");fields.qty.focus();return}
+ if(!Number.isInteger(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre entier positif ou nul.");fields.min.focus();return}
+ if(leadRaw!==""&&(!Number.isInteger(leadNumber)||leadNumber<0)){alert("Le délai doit être un nombre entier de jours, positif ou nul.");fields.lead.focus();return}
+ if(orderUrlValue){
+  let parsedOrderUrl;
+  try{parsedOrderUrl=new URL(orderUrlValue)}catch{alert("Le lien de commande doit être une URL valide commençant par https:// ou http://.");fields.orderUrl.focus();return}
+  if(!["https:","http:"].includes(parsedOrderUrl.protocol)){alert("Le lien de commande doit commencer par https:// ou http://.");fields.orderUrl.focus();return}
+ }
  const newRef=fields.ref.value.trim();
  // Une référence interne doit être unique, à l’ajout comme à la modification.
  if(data.some(t=>t.ref===newRef && t.ref!==editingRef)){alert("Cette référence existe déjà.");fields.ref.focus();return}
  const existingTool=editingRef!==null?data.find(t=>t.ref===editingRef):null;
- const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:fields.orderUrl.value.trim(),dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
+ const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:orderUrlValue,dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
  if(existingTool){
   const index=data.findIndex(t=>t.ref===editingRef);
   if(index>=0)data[index]=x;else data.push(x);
