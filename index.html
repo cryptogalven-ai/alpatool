@@ -241,8 +241,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </div></div>
 <div class="tool-form-section">
 <h3>3 · Stock et emplacement</h3><div class="grid">
-<div><label class="small">Quantité actuelle <span class="field-required">*</span></label><input id="qty" type="number" min="0" placeholder="Ex. 2" required></div>
-<div><label class="small">Stock de sécurité <span class="field-required">*</span></label><input id="min" type="number" min="0" placeholder="Ex. 1" required></div>
+<div><label class="small">Quantité actuelle <span class="field-required">*</span></label><input id="qty" type="number" min="0" step="1" placeholder="Ex. 2" required></div>
+<div><label class="small">Stock de sécurité <span class="field-required">*</span></label><input id="min" type="number" min="0" step="1" placeholder="Ex. 1" required></div>
 <div class="full"><label class="small">Emplacement <span class="field-required">*</span></label><input id="location" placeholder="Ex. Armoire A / tiroir 12" required></div>
 </div></div>
 <div class="tool-form-section">
@@ -271,6 +271,8 @@ let filter="all";
 data=data.map(x=>({...x,movements:Array.isArray(x.movements)?x.movements:[]}));
 
 function save(){localStorage.setItem("tools-v1",JSON.stringify(data));localStorage.setItem("tool-orders-v1",JSON.stringify(orders));localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories))}
+ function escapeHTML(value){return String(value??"").split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;").split(String.fromCharCode(34)).join("&quot;").split(String.fromCharCode(39)).join("&#39;")}
+ function safeHttpUrl(value){try{const url=new URL(String(value||""));return url.protocol==="https:"||url.protocol==="http:"?url.href:""}catch{return ""}}
 function hasActiveOrder(ref){return orders.some(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref))}
 function getActiveOrderStatus(ref){const o=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref));return o?o.status:null}
 function render(){
@@ -293,7 +295,7 @@ function render(){
   const activeOrderStatus=getActiveOrderStatus(x.ref);
   const st=x.qty<=0?"danger":activeOrderStatus==="Commandée"?"warn":x.qty<=x.min?"warn":"ok", label=x.qty<=0?"Rupture":activeOrderStatus==="Commandée"?"Commandée":x.qty<=x.min?"À commander":"OK";
   const orderQty=x.qty<=x.min?Math.max(1,x.min-x.qty):0;
-  const action=activeOrderStatus==="Commandée"?`<span class="small" style="font-weight:700">📦 Commande en cours</span>`:x.qty<=x.min?(x.orderUrl?`<a class="order-link" style="margin-top:0" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`):"—";
+  const action=activeOrderStatus==="Commandée"?`<span class="small" style="font-weight:700">📦 Commande en cours</span>`:x.qty<=x.min?(x.orderUrl?`<a class="order-link" style="margin-top:0" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`):"—";
   return `<tr class="tool-row" onclick="showDetails('${x.ref.replace(/'/g,"\\'")}')" title="Cliquer pour voir la fiche détaillée"><td><b>${x.ref}</b><br><span class="small">${x.supplier}</span></td><td>${x.type}</td><td>${x.toolType||"—"}</td><td>${x.dimension}</td><td><b>${x.qty}</b></td><td><b>${x.min}</b></td><td>${x.price.toFixed(2)} CHF</td><td>${(x.price*x.qty).toFixed(2)} CHF</td><td>${x.location}</td><td>${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</td><td>${orderQty?`<b>${orderQty}</b>`:"—"}</td><td><span class="badge ${st}">${label}</span></td><td>${action}</td></tr>`
  }).join("")||'<tr><td colspan="12">Aucun résultat.</td></tr>';
  document.getElementById("count").textContent=data.reduce((a,x)=>a+x.qty,0);
@@ -314,12 +316,12 @@ function renderDashboard(){
    const cls=m.type==="entrée"?"activity-entry":m.type==="sortie"?"activity-sortie":"activity-correction";
    const sign=m.type==="entrée"?"+":m.type==="sortie"?"−":"";
    const label=m.type==="entrée"?"Entrée":m.type==="sortie"?"Sortie":"Correction";
-   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}</div><div class="activity-meta">${m.note||m.supplier||"Mouvement de stock"} · ${m.date||"—"}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
+   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${escapeHTML(m.ref)}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
  }).join(""):'<div class="dash-empty">Aucun mouvement enregistré.</div>';
  const low=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).sort((a,b)=>(a.qty-a.min)-(b.qty-b.min)).slice(0,5);
  alertCount.textContent=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).length;
  alertCount.className="alert-count"+(low.length?"":" ok");
- alerts.innerHTML=low.length?low.map(x=>{const qty=Math.max(1,x.min-x.qty);return `<div class="alert-item"><div class="alert-main"><div class="alert-ref">${x.ref}</div><div class="alert-meta">Stock ${x.qty} · Sécurité ${x.min} · ${x.supplier||"Fournisseur non renseigné"}</div></div><div class="badge danger">-${qty} à prévoir</div></div>`}).join(""):'<div class="dash-empty">✓ Aucun outil sous le stock de sécurité.</div>';
+ alerts.innerHTML=low.length?low.map(x=>{const qty=Math.max(1,x.min-x.qty);return `<div class="alert-item"><div class="alert-main"><div class="alert-ref">${escapeHTML(x.ref)}</div><div class="alert-meta">Stock ${x.qty} · Sécurité ${x.min} · ${escapeHTML(x.supplier||"Fournisseur non renseigné")}</div></div><div class="badge danger">-${qty} à prévoir</div></div>`}).join(""):'<div class="dash-empty">✓ Aucun outil sous le stock de sécurité.</div>';
 }
 function renderOrderSummary(){
  const box=document.getElementById("orderSummary");
@@ -333,7 +335,7 @@ function renderOrderSummary(){
  const supplierBlocks=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([supplier,list])=>{
    const supplierQty=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty),0);
    const supplierCost=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty)*Number(x.price||0),0);
-   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${supplier}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="createOrderForSupplier(${JSON.stringify(supplier).replace(/\"/g,'&quot;')})">📋 Créer la commande</button></div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
+   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${supplier}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="createOrderForSupplier(${JSON.stringify(supplier).replace(/\"/g,'&quot;')})">📋 Créer la commande</button></div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
  }).join("");
  box.classList.add("open");
  box.innerHTML=`<div class="order-summary-head"><div><div class="order-summary-title">🛒 Préparation des commandes</div><div class="small">Les besoins sont regroupés par fournisseur. Les quantités permettent de revenir au stock de sécurité.</div></div><div class="order-summary-grid"><div class="order-summary-card"><span class="small">Outils concernés</span><b>${items.length}</b></div><div class="order-summary-card"><span class="small">Fournisseurs</span><b>${Object.keys(groups).length}</b></div><div class="order-summary-card"><span class="small">Coût estimé</span><b>${totalCost.toFixed(2)} CHF</b></div></div></div>${supplierBlocks}`;
@@ -483,7 +485,7 @@ function openProductionStatus(){
  const details=partial.map(x=>{
    const state=x.qty<=0?`<span class="badge danger">Rupture</span>`:x.qty<=x.min?`<span class="badge warn">À surveiller</span>`:`<span class="badge ok">Disponible</span>`;
    const orderQty=Math.max(0,x.min-x.qty);
-   const order=orderQty&&x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:orderQty?`<span class="small">À commander : ${orderQty}</span>`:"";
+   const order=orderQty&&x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:orderQty?`<span class="small">À commander : ${orderQty}</span>`:"";
    return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}</div><div>${state}</div></div><div class="production-meta">${x.dimension||"—"} · Stock : <b>${x.qty}</b> · Sécurité : ${x.min} · ${x.location||"Emplacement non défini"} · Fournisseur : ${x.supplier||"—"} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div>${order?`<div class="production-actions">${order}</div>`:""}</div>`;
  }).join("");
  const actionTools=partial.filter(x=>x.qty<=x.min);
@@ -699,7 +701,7 @@ function showDetails(refValue){
    <div class="detail-card"><div class="small">Type d'outil</div><b>${x.toolType||"—"}</b></div>
    <div class="detail-card"><div class="small">Fournisseur</div><b>${x.supplier||"—"}</b></div>
    <div class="detail-card"><div class="small">Référence fournisseur</div><b>${x.supplierRef||"—"}</b>
-   ${x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:""}</div>
+   ${x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:""}</div>
    <div class="detail-card"><div class="small">Dimension</div><b>${x.dimension||"—"}</b></div>
    <div class="detail-card"><div class="small">Prix unitaire</div><b>${x.price.toFixed(2)} CHF</b></div>
    <div class="detail-card detail-stock"><div class="small">Stock actuel</div><b>${x.qty}</b><span class="detail-stock-status ${x.qty<=x.min?"is-low":"is-ok"}">${x.qty<=x.min?"Stock à surveiller":"Stock OK"}</span></div>
@@ -773,7 +775,7 @@ function closeModal(){document.getElementById("modal").classList.remove("open")}
 function renderPieceTags(){
  const box=document.getElementById("selectedPieces");
  if(!box)return;
- box.innerHTML=currentPieces.map((piece,i)=>`<span class="piece-tag">${piece}<button type="button" onclick="removePiece(${i})" title="Retirer">×</button></span>`).join("");
+ box.innerHTML=currentPieces.map((piece,i)=>`<span class="piece-tag">${escapeHTML(piece)}<button type="button" onclick="removePiece(${i})" title="Retirer">×</button></span>`).join("");
 }
 function addPiece(){
  const input=document.getElementById("pieceInput");
@@ -809,15 +811,24 @@ function add(){
   if(!el || !String(el.value).trim()){alert("Le champ « "+label+" » est obligatoire.");if(el)el.focus();return}
  }
  const priceValue=Number(fields.price.value),qtyValue=Number(fields.qty.value),minValue=Number(fields.min.value);
- const leadValue=fields.lead.value===""?"":Math.max(0,Math.floor(Number(fields.lead.value)));
+ const leadRaw=fields.lead.value.trim();
+ const leadNumber=leadRaw===""?null:Number(leadRaw);
+ const leadValue=leadRaw===""?"":leadNumber;
+ const orderUrlValue=fields.orderUrl.value.trim();
  if(!Number.isFinite(priceValue)||priceValue<0){alert("Le prix doit être un nombre positif.");fields.price.focus();return}
- if(!Number.isFinite(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre positif.");fields.qty.focus();return}
- if(!Number.isFinite(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre positif.");fields.min.focus();return}
+ if(!Number.isInteger(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre entier positif ou nul.");fields.qty.focus();return}
+ if(!Number.isInteger(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre entier positif ou nul.");fields.min.focus();return}
+ if(leadRaw!==""&&(!Number.isInteger(leadNumber)||leadNumber<0)){alert("Le délai doit être un nombre entier de jours, positif ou nul.");fields.lead.focus();return}
+ if(orderUrlValue){
+  let parsedOrderUrl;
+  try{parsedOrderUrl=new URL(orderUrlValue)}catch{alert("Le lien de commande doit être une URL valide commençant par https:// ou http://.");fields.orderUrl.focus();return}
+  if(!["https:","http:"].includes(parsedOrderUrl.protocol)){alert("Le lien de commande doit commencer par https:// ou http://.");fields.orderUrl.focus();return}
+ }
  const newRef=fields.ref.value.trim();
  // Une référence interne doit être unique, à l’ajout comme à la modification.
  if(data.some(t=>t.ref===newRef && t.ref!==editingRef)){alert("Cette référence existe déjà.");fields.ref.focus();return}
  const existingTool=editingRef!==null?data.find(t=>t.ref===editingRef):null;
- const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:fields.orderUrl.value.trim(),dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
+ const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:orderUrlValue,dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
  if(existingTool){
   const index=data.findIndex(t=>t.ref===editingRef);
   if(index>=0)data[index]=x;else data.push(x);
