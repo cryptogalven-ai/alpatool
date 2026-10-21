@@ -120,7 +120,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 <div class="header-right"><span class="header-pill">ATELIER</span><span>Precision · Control · Production</span></div>
 <div id="authUserBar" style="display:none"></div>
 </header>
-<div id="authTestNotice">Mode test : l’authentification est reliée à Supabase, mais les outils et commandes affichés restent enregistrés localement dans ce navigateur. Ne saisis pas encore de données réelles.</div>
+<div id="authTestNotice">Mode test : les outils et mouvements de stock sont synchronisés avec Supabase pour cet atelier. Les commandes et archives restent encore locales. Version de test uniquement.</div>
+<div id="cloudStatus" role="status" style="max-width:1320px;margin:0 auto;padding:0 20px;font-size:12px;color:#64748b"></div>
 <div class="wrap">
 <div class="cards">
 <div class="card"><div class="label">Outils en stock</div><div class="value" id="count">0</div></div>
@@ -308,7 +309,12 @@ let deletedToolHistories=JSON.parse(localStorage.getItem("tool-deleted-history-v
 let filter="all";
 data=data.map(x=>({...x,movements:Array.isArray(x.movements)?x.movements:[]}));
 
-function save(){localStorage.setItem("tools-v1",JSON.stringify(data));localStorage.setItem("tool-orders-v1",JSON.stringify(orders));localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories))}
+function save(){
+ localStorage.setItem("tools-v1",JSON.stringify(data));
+ localStorage.setItem("tool-orders-v1",JSON.stringify(orders));
+ localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+ if(cloudReady) syncToolsToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+}
 function hasActiveOrder(ref){return orders.some(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref))}
 function getActiveOrderStatus(ref){const o=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref));return o?o.status:null}
 function render(){
@@ -865,7 +871,88 @@ function add(){
  save();closeModal();document.querySelectorAll("#modal input").forEach(i=>i.value="");resetPieces();resetFormMode();render();
 }
 
-// Authentification de test : aucun accès au contenu de l'application sans session valide.
+// Synchronisation Supabase des outils et mouvements de stock (atelier isolé par RLS).
+let cloudWorkshopId=null;
+let cloudReady=false;
+let cloudSyncRunning=false;
+let cloudSyncQueued=false;
+function setCloudStatus(message,isError=false){
+ const el=document.getElementById("cloudStatus");
+ if(el){el.textContent=message;el.style.color=isError?"#b42318":"#64748b";}
+}
+function toolToCloud(t){
+ return {workshop_id:cloudWorkshopId,ref:t.ref,category:t.type==="Spéciale"?"Spéciale":"Courante",tool_type:t.toolType||"autre",supplier:t.supplier||"",supplier_ref:t.supplierRef||"",order_url:t.orderUrl||"",dimension:t.dimension||"",price:Number(t.price||0),qty:Number(t.qty||0),min_qty:Number(t.min||0),location:t.location||"",lead_days:Number(t.lead||0),pieces:Array.isArray(t.pieces)?t.pieces:(t.pieces||"").split(",").map(v=>v.trim()).filter(Boolean),note:t.note||"",archived_at:null};
+}
+function toolFromCloud(t){
+ return {ref:t.ref,type:t.category,toolType:t.tool_type,supplier:t.supplier,supplierRef:t.supplier_ref,orderUrl:t.order_url,dimension:t.dimension,price:Number(t.price||0),qty:Number(t.qty||0),min:Number(t.min_qty||0),location:t.location,lead:Number(t.lead_days||0),pieces:Array.isArray(t.pieces)?t.pieces:[],note:t.note||"",movements:[]};
+}
+async function initializeCloudData(user){
+ cloudReady=false;
+ setCloudStatus("Connexion à la base de données…");
+ const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("workshop_id,role").eq("id",user.id).single();
+ if(profileError)throw new Error("Profil atelier introuvable : "+profileError.message);
+ cloudWorkshopId=profile.workshop_id;
+ if(!cloudWorkshopId)throw new Error("Aucun atelier n'est associé à ce compte.");
+ const {data:cloudTools,error:toolsError}=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId).is("archived_at",null).order("ref");
+ if(toolsError)throw new Error("Lecture des outils impossible : "+toolsError.message);
+ if(cloudTools.length){
+  const {data:movements,error:movError}=await supabaseClient.from("stock_movements").select("*").eq("workshop_id",cloudWorkshopId).order("created_at",{ascending:false});
+  if(movError)throw new Error("Lecture des mouvements impossible : "+movError.message);
+  data=cloudTools.map(toolFromCloud);
+  movements.forEach(m=>{
+   const t=data.find(x=>x.ref===m.tool_ref);
+   if(t)t.movements.push({date:new Date(m.created_at).toLocaleString("fr-CH"),type:m.movement_type,qty:Number(m.quantity),delta:Number(m.qty_after)-Number(m.qty_before),oldQty:Number(m.qty_before),newQty:Number(m.qty_after),note:m.note||""});
+  });
+ }else{
+  // Première connexion : importer les outils de démonstration déjà affichés dans ce navigateur.
+  const {error:importError}=await supabaseClient.from("tools").upsert(data.map(toolToCloud),{onConflict:"workshop_id,ref"});
+  if(importError)throw new Error("Import initial des outils impossible : "+importError.message);
+ }
+ cloudReady=true;
+ localStorage.setItem("tools-v1",JSON.stringify(data));
+ render();
+ setCloudStatus("Synchronisé avec Supabase · Atelier privé · "+data.length+" outil(s). Les commandes restent locales pour le moment.");
+}
+async function syncToolsToCloud(){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudSyncRunning){cloudSyncQueued=true;return;}
+ cloudSyncRunning=true;
+ setCloudStatus("Synchronisation du stock…");
+ try{
+  const rows=data.map(toolToCloud);
+  if(rows.length){
+   const {error}=await supabaseClient.from("tools").upsert(rows,{onConflict:"workshop_id,ref"});
+   if(error)throw error;
+  }
+  const activeRefs=data.map(t=>t.ref);
+  let query=supabaseClient.from("tools").update({archived_at:new Date().toISOString()}).eq("workshop_id",cloudWorkshopId).is("archived_at",null);
+  if(activeRefs.length)query=query.not("ref","in","("+activeRefs.map(v=>'"'+String(v).replace(/"/g,'\\"')+'"').join(",")+")");
+  const {error:archiveError}=await query;
+  if(archiveError)throw archiveError;
+  // Les mouvements sont enregistrés comme événements distincts.
+  const {data:cloudRows,error:readError}=await supabaseClient.from("tools").select("id,ref").eq("workshop_id",cloudWorkshopId).is("archived_at",null);
+  if(readError)throw readError;
+  for(const t of data){
+   const dbTool=cloudRows.find(row=>row.ref===t.ref);
+   if(!dbTool)continue;
+   const {error:clearError}=await supabaseClient.from("stock_movements").delete().eq("workshop_id",cloudWorkshopId).eq("tool_id",dbTool.id);
+   if(clearError)throw clearError;
+   const history=(t.movements||[]).slice().reverse().map(m=>({workshop_id:cloudWorkshopId,tool_id:dbTool.id,movement_type:m.type,quantity:Math.abs(Number(m.qty||m.delta||0)),qty_before:Math.max(0,Number(m.oldQty??m.newQty??0)),qty_after:Math.max(0,Number(m.newQty??0)),note:m.note||"",created_by:(supabaseClient.auth.getUser?null:null)}));
+   if(history.length){
+    const {data:userData}=await supabaseClient.auth.getUser();
+    history.forEach(m=>m.created_by=userData?.user?.id||null);
+    const {error:movementError}=await supabaseClient.from("stock_movements").insert(history);
+    if(movementError)throw movementError;
+   }
+  }
+  setCloudStatus("Synchronisé avec Supabase · "+data.length+" outil(s). Les commandes restent locales pour le moment.");
+ }finally{
+  cloudSyncRunning=false;
+  if(cloudSyncQueued){cloudSyncQueued=false;syncToolsToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));}
+ }
+}
+
+// Authentification : aucun accès au contenu de l'application sans session valide.
 const authGate=document.getElementById("authGate");
 const authForm=document.getElementById("authForm");
 const authMessage=document.getElementById("authMessage");
@@ -883,6 +970,7 @@ function showAuthenticatedSession(user){
   logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(error)setAuthMessage(error.message,true);});
   authUserBar.append(label,logout);
   authTestNotice.style.display="block";
+  initializeCloudData(user).catch(err=>{cloudReady=false;setCloudStatus("Base de données non connectée : "+(err.message||err),true);});
 }
 function showSignedOut(){
   authGate.hidden=false;
