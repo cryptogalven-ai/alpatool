@@ -241,8 +241,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </div></div>
 <div class="tool-form-section">
 <h3>3 · Stock et emplacement</h3><div class="grid">
-<div><label class="small">Quantité actuelle <span class="field-required">*</span></label><input id="qty" type="number" min="0" step="1" placeholder="Ex. 2" required></div>
-<div><label class="small">Stock de sécurité <span class="field-required">*</span></label><input id="min" type="number" min="0" step="1" placeholder="Ex. 1" required></div>
+<div><label class="small">Quantité actuelle <span class="field-required">*</span></label><input id="qty" type="number" min="0" placeholder="Ex. 2" required></div>
+<div><label class="small">Stock de sécurité <span class="field-required">*</span></label><input id="min" type="number" min="0" placeholder="Ex. 1" required></div>
 <div class="full"><label class="small">Emplacement <span class="field-required">*</span></label><input id="location" placeholder="Ex. Armoire A / tiroir 12" required></div>
 </div></div>
 <div class="tool-form-section">
@@ -271,8 +271,6 @@ let filter="all";
 data=data.map(x=>({...x,movements:Array.isArray(x.movements)?x.movements:[]}));
 
 function save(){localStorage.setItem("tools-v1",JSON.stringify(data));localStorage.setItem("tool-orders-v1",JSON.stringify(orders));localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories))}
- function escapeHTML(value){return String(value??"").split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;").split(String.fromCharCode(34)).join("&quot;").split(String.fromCharCode(39)).join("&#39;")}
- function safeHttpUrl(value){try{const url=new URL(String(value||""));return url.protocol==="https:"||url.protocol==="http:"?url.href:""}catch{return ""}}
 function hasActiveOrder(ref){return orders.some(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref))}
 function getActiveOrderStatus(ref){const o=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref));return o?o.status:null}
 function render(){
@@ -295,10 +293,9 @@ function render(){
   const activeOrderStatus=getActiveOrderStatus(x.ref);
   const st=x.qty<=0?"danger":activeOrderStatus==="Commandée"?"warn":x.qty<=x.min?"warn":"ok", label=x.qty<=0?"Rupture":activeOrderStatus==="Commandée"?"Commandée":x.qty<=x.min?"À commander":"OK";
   const orderQty=x.qty<=x.min?Math.max(1,x.min-x.qty):0;
-  const action=activeOrderStatus==="Commandée"?`<span class="small" style="font-weight:700">📦 Commande en cours</span>`:x.qty<=x.min?(x.orderUrl?`<a class="order-link" style="margin-top:0" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`):"—";
-  return `<tr class="tool-row" data-tool-ref="${escapeHTML(x.ref)}" title="Cliquer pour voir la fiche détaillée"><td><b>${escapeHTML(x.ref)}</b><br><span class="small">${escapeHTML(x.supplier)}</span></td><td>${escapeHTML(x.type)}</td><td>${escapeHTML(x.toolType||"—")}</td><td>${escapeHTML(x.dimension)}</td><td><b>${x.qty}</b></td><td><b>${x.min}</b></td><td>${x.price.toFixed(2)} CHF</td><td>${(x.price*x.qty).toFixed(2)} CHF</td><td>${escapeHTML(x.location)}</td><td>${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</td><td>${orderQty?`<b>${orderQty}</b>`:"—"}</td><td><span class="badge ${st}">${label}</span></td><td>${action}</td></tr>`
+  const action=activeOrderStatus==="Commandée"?`<span class="small" style="font-weight:700">📦 Commande en cours</span>`:x.qty<=x.min?(x.orderUrl?`<a class="order-link" style="margin-top:0" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`):"—";
+  return `<tr class="tool-row" onclick="showDetails('${x.ref.replace(/'/g,"\\'")}')" title="Cliquer pour voir la fiche détaillée"><td><b>${x.ref}</b><br><span class="small">${x.supplier}</span></td><td>${x.type}</td><td>${x.toolType||"—"}</td><td>${x.dimension}</td><td><b>${x.qty}</b></td><td><b>${x.min}</b></td><td>${x.price.toFixed(2)} CHF</td><td>${(x.price*x.qty).toFixed(2)} CHF</td><td>${x.location}</td><td>${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</td><td>${orderQty?`<b>${orderQty}</b>`:"—"}</td><td><span class="badge ${st}">${label}</span></td><td>${action}</td></tr>`
  }).join("")||'<tr><td colspan="12">Aucun résultat.</td></tr>';
- document.querySelectorAll("#body tr[data-tool-ref]").forEach(row=>row.addEventListener("click",()=>showDetails(row.dataset.toolRef)));
  document.getElementById("count").textContent=data.reduce((a,x)=>a+x.qty,0);
  document.getElementById("special").textContent=data.filter(x=>x.type==="Spéciale").length;
  document.getElementById("orders").textContent=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).length;
@@ -317,18 +314,18 @@ function renderDashboard(){
    const cls=m.type==="entrée"?"activity-entry":m.type==="sortie"?"activity-sortie":"activity-correction";
    const sign=m.type==="entrée"?"+":m.type==="sortie"?"−":"";
    const label=m.type==="entrée"?"Entrée":m.type==="sortie"?"Sortie":"Correction";
-   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${escapeHTML(m.ref)}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
+   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}</div><div class="activity-meta">${m.note||m.supplier||"Mouvement de stock"} · ${m.date||"—"}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
  }).join(""):'<div class="dash-empty">Aucun mouvement enregistré.</div>';
  const low=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).sort((a,b)=>(a.qty-a.min)-(b.qty-b.min)).slice(0,5);
  alertCount.textContent=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).length;
  alertCount.className="alert-count"+(low.length?"":" ok");
- alerts.innerHTML=low.length?low.map(x=>{const qty=Math.max(1,x.min-x.qty);return `<div class="alert-item"><div class="alert-main"><div class="alert-ref">${escapeHTML(x.ref)}</div><div class="alert-meta">Stock ${x.qty} · Sécurité ${x.min} · ${escapeHTML(x.supplier||"Fournisseur non renseigné")}</div></div><div class="badge danger">-${qty} à prévoir</div></div>`}).join(""):'<div class="dash-empty">✓ Aucun outil sous le stock de sécurité.</div>';
+ alerts.innerHTML=low.length?low.map(x=>{const qty=Math.max(1,x.min-x.qty);return `<div class="alert-item"><div class="alert-main"><div class="alert-ref">${x.ref}</div><div class="alert-meta">Stock ${x.qty} · Sécurité ${x.min} · ${x.supplier||"Fournisseur non renseigné"}</div></div><div class="badge danger">-${qty} à prévoir</div></div>`}).join(""):'<div class="dash-empty">✓ Aucun outil sous le stock de sécurité.</div>';
 }
 function renderOrderSummary(){
  const box=document.getElementById("orderSummary");
  if(!box)return;
  if(filter!=="low"){box.classList.remove("open");box.innerHTML="";return}
- const items=data.filter(x=>x.qty<=x.min);
+ const items=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref));
  const totalQty=items.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty),0);
  const totalCost=items.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty)*Number(x.price||0),0);
  const groups={};
@@ -336,9 +333,7 @@ function renderOrderSummary(){
  const supplierBlocks=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([supplier,list])=>{
    const supplierQty=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty),0);
    const supplierCost=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty)*Number(x.price||0),0);
-   const supplierOrderAlreadyPlaced=list.every(x=>{const o=orders.find(o=>o.status==="Commandée"&&o.supplier===supplier&&o.items.some(i=>i.ref===x.ref));return Boolean(o)});
-   const supplierHasActiveDraft=list.some(x=>hasActiveOrder(x.ref));
-   const orderButton=supplierOrderAlreadyPlaced?`<button type="button" disabled style="opacity:.75;cursor:default">✓ Commande passée</button>`:supplierHasActiveDraft?`<button type="button" disabled style="opacity:.75;cursor:default">⏳ Commande en préparation</button>`:`<button type="button" class="primary" onclick="createOrderForSupplier(${JSON.stringify(supplier).replace(/\"/g,'&quot;')})">📋 Créer la commande</button>`;\n   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${escapeHTML(supplier)}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div>${orderButton}</div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
+   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${supplier}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="createOrderForSupplier(${JSON.stringify(supplier).replace(/\"/g,'&quot;')})">📋 Créer la commande</button></div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
  }).join("");
  box.classList.add("open");
  box.innerHTML=`<div class="order-summary-head"><div><div class="order-summary-title">🛒 Préparation des commandes</div><div class="small">Les besoins sont regroupés par fournisseur. Les quantités permettent de revenir au stock de sécurité.</div></div><div class="order-summary-grid"><div class="order-summary-card"><span class="small">Outils concernés</span><b>${items.length}</b></div><div class="order-summary-card"><span class="small">Fournisseurs</span><b>${Object.keys(groups).length}</b></div><div class="order-summary-card"><span class="small">Coût estimé</span><b>${totalCost.toFixed(2)} CHF</b></div></div></div>${supplierBlocks}`;
@@ -354,7 +349,7 @@ function createOrderForSupplier(supplier){
  document.getElementById("createOrderSupplier").textContent="Fournisseur : "+supplier+" — indiquez la quantité réellement commandée pour chaque outil.";
  document.getElementById("createOrderItems").innerHTML=candidates.map((x,i)=>{
    const suggested=Math.max(1,x.min-x.qty);
-   return `<div style="border:1px solid #e1e7ee;border-radius:10px;padding:12px;margin-bottom:10px"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}</div><div class="small" style="margin:4px 0 8px">Stock : ${x.qty} · Sécurité : ${x.min} · Suggestion : ${suggested} · Prix : ${Number(x.price||0).toFixed(2)} CHF</div><label class="small">Quantité commandée</label><input type="number" id="orderQty_${i}" min="1" step="1" value="${suggested}" style="width:140px"></div>`;
+   return `<div style="border:1px solid #e1e7ee;border-radius:10px;padding:12px;margin-bottom:10px"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}</div><div class="small" style="margin:4px 0 8px">Stock : ${x.qty} · Sécurité : ${x.min} · Suggestion : ${suggested} · Prix : ${Number(x.price||0).toFixed(2)} CHF</div><label class="small">Quantité commandée</label><input type="number" id="orderQty_${i}" min="1" step="1" value="${suggested}" style="width:140px"></div>`;
  }).join("");
  document.getElementById("createOrderModal").classList.add("open");
 }
@@ -369,7 +364,7 @@ function confirmCreateOrder(){
    if(!Number.isInteger(q)||q<=0){alert("La quantité commandée pour "+x.ref+" doit être un nombre entier supérieur à 0.");input?.focus();return;}
    items.push({ref:x.ref,qty:q,unitPrice:Number(x.price||0),total:q*Number(x.price||0),lead:Number(x.lead||0)});
  }
- const maxLead=Math.max(0,...items.map(i=>Number(i.lead||0)));const expected=new Date();expected.setHours(12,0,0,0);expected.setDate(expected.getDate()+maxLead);const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"Commandée",orderedAt:new Date().toLocaleDateString("fr-CH"),expectedDelivery:expected.toLocaleDateString("fr-CH"),leadDays:maxLead,total:items.reduce((a,x)=>a+x.total,0)};
+ const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0)};
  orders.unshift(order);save();closeCreateOrder();openOrders();
 }
 function formatDateForInput(dateText){
@@ -420,14 +415,14 @@ function renderOrderHistory(query){
  const filtered=orders.filter(o=>!q || String(o.id).toLowerCase().includes(q) || String(o.supplier||"").toLowerCase().includes(q) || o.items.some(i=>String(i.ref).toLowerCase().includes(q)));
  if(!filtered.length){box.innerHTML='<div class="analysis-empty">Aucune commande ne correspond à la recherche.</div>';return;}
  filtered.sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
- box.innerHTML=filtered.map(o=>{const delivery=getDeliveryInfo(o);const statusClass=o.status==="Reçue"?"ok":o.status==="Commandée"?"warn":o.status==="Annulée"?"danger":"";let actions="";if(o.status==="À commander"){actions=`<button type="button" class="primary" onclick="markOrderOrdered('${o.id}')">Marquer commandée</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Commandée"){actions=`<button type="button" class="primary" onclick="receiveOrder('${o.id}')">📦 Marquer reçue</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Reçue"){actions=`<span class="small">Stock mis à jour</span>`;}else{actions=`<span class="small">Commande annulée</span>`;}const sim=o.status==="Commandée"?`<details style="margin-top:10px;padding:8px 10px;background:#f7f9fb;border:1px dashed #cbd5e1;border-radius:8px"><summary style="cursor:pointer;font-weight:700">🧪 Mode test livraison</summary><div class="small" style="margin:8px 0">Uniquement pour tester les différents états.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px"><button type="button" onclick="deliverySimulation('${o.id}',10)">+10 jours</button><button type="button" onclick="deliverySimulation('${o.id}',3)">+3 jours</button><button type="button" onclick="deliverySimulation('${o.id}',1)">Demain</button><button type="button" onclick="deliverySimulation('${o.id}',0)">Aujourd'hui</button><button type="button" onclick="deliverySimulation('${o.id}',-1)">En retard</button></div></details>`:"";return `<div class="order-summary-card" style="margin-bottom:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">${escapeHTML(o.id)} — ${escapeHTML(o.supplier)}</div><div class="small">Créée le ${escapeHTML(o.date)} · ${o.items.length} outil(s) · ${Number(o.total).toFixed(2)} CHF</div>${o.status==="Commandée"?`<div style="margin-top:5px;font-weight:700">📅 Livraison prévue : ${escapeHTML(o.expectedDelivery||"—")}${o.leadDays!=null?` <span class="small">(${o.leadDays} jour(s))</span>`:""}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="small" for="expectedDate_${o.id}">Modifier la date prévue :</label><input type="date" id="expectedDate_${o.id}" value="${formatDateForInput(o.expectedDelivery)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setDeliveryDate('${o.id}',document.getElementById('expectedDate_${o.id}').value)">✏️ Modifier</button></div>${delivery?`<div style="margin-top:5px"><span class="badge ${delivery.cls}">${delivery.label}</span></div>`:""}`:""}${o.status==="Reçue"&&o.receivedAt?`<div style="margin-top:5px;font-weight:700">📦 Date de livraison réelle : ${escapeHTML(o.receivedAt)}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px"><label class="small" for="receivedDate_${o.id}">Modifier la date réelle :</label><input type="date" id="receivedDate_${o.id}" value="${formatDateForInput(o.receivedAt)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setReceivedDate('${o.id}',document.getElementById('receivedDate_${o.id}').value)">✏️ Modifier</button></div>`:""}${o.status==="Annulée"&&o.cancelledAt?`<div style="margin-top:5px">✖ Annulée le ${escapeHTML(o.cancelledAt)}</div>`:""}</div><div><span class="badge ${statusClass}">${o.status}</span></div></div><table style="margin-top:10px"><thead><tr><th>Référence</th><th>Quantité</th><th>Prix</th><th>Total</th></tr></thead><tbody>${o.items.map(i=>`<tr><td><b>${escapeHTML(i.ref)}</b></td><td>${i.qty}</td><td>${Number(i.unitPrice).toFixed(2)} CHF</td><td>${Number(i.total).toFixed(2)} CHF</td></tr>`).join("")}</tbody></table>${sim}<div class="actions">${actions}</div></div>`}).join("");
+ box.innerHTML=filtered.map(o=>{const delivery=getDeliveryInfo(o);const statusClass=o.status==="Reçue"?"ok":o.status==="Commandée"?"warn":o.status==="Annulée"?"danger":"";let actions="";if(o.status==="À commander"){actions=`<button type="button" class="primary" onclick="markOrderOrdered('${o.id}')">Marquer commandée</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Commandée"){actions=`<button type="button" class="primary" onclick="receiveOrder('${o.id}')">📦 Marquer reçue</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Reçue"){actions=`<span class="small">Stock mis à jour</span>`;}else{actions=`<span class="small">Commande annulée</span>`;}const sim=o.status==="Commandée"?`<details style="margin-top:10px;padding:8px 10px;background:#f7f9fb;border:1px dashed #cbd5e1;border-radius:8px"><summary style="cursor:pointer;font-weight:700">🧪 Mode test livraison</summary><div class="small" style="margin:8px 0">Uniquement pour tester les différents états.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px"><button type="button" onclick="deliverySimulation('${o.id}',10)">+10 jours</button><button type="button" onclick="deliverySimulation('${o.id}',3)">+3 jours</button><button type="button" onclick="deliverySimulation('${o.id}',1)">Demain</button><button type="button" onclick="deliverySimulation('${o.id}',0)">Aujourd'hui</button><button type="button" onclick="deliverySimulation('${o.id}',-1)">En retard</button></div></details>`:"";return `<div class="order-summary-card" style="margin-bottom:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">${o.id} — ${o.supplier}</div><div class="small">Créée le ${o.date} · ${o.items.length} outil(s) · ${Number(o.total).toFixed(2)} CHF</div>${o.status==="Commandée"?`<div style="margin-top:5px;font-weight:700">📅 Livraison prévue : ${o.expectedDelivery||"—"}${o.leadDays!=null?` <span class="small">(${o.leadDays} jour(s))</span>`:""}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="small" for="expectedDate_${o.id}">Modifier la date prévue :</label><input type="date" id="expectedDate_${o.id}" value="${formatDateForInput(o.expectedDelivery)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setDeliveryDate('${o.id}',document.getElementById('expectedDate_${o.id}').value)">✏️ Modifier</button></div>${delivery?`<div style="margin-top:5px"><span class="badge ${delivery.cls}">${delivery.label}</span></div>`:""}`:""}${o.status==="Reçue"&&o.receivedAt?`<div style="margin-top:5px;font-weight:700">📦 Date de livraison réelle : ${o.receivedAt}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px"><label class="small" for="receivedDate_${o.id}">Modifier la date réelle :</label><input type="date" id="receivedDate_${o.id}" value="${formatDateForInput(o.receivedAt)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setReceivedDate('${o.id}',document.getElementById('receivedDate_${o.id}').value)">✏️ Modifier</button></div>`:""}${o.status==="Annulée"&&o.cancelledAt?`<div style="margin-top:5px">✖ Annulée le ${o.cancelledAt}</div>`:""}</div><div><span class="badge ${statusClass}">${o.status}</span></div></div><table style="margin-top:10px"><thead><tr><th>Référence</th><th>Quantité</th><th>Prix</th><th>Total</th></tr></thead><tbody>${o.items.map(i=>`<tr><td><b>${i.ref}</b></td><td>${i.qty}</td><td>${Number(i.unitPrice).toFixed(2)} CHF</td><td>${Number(i.total).toFixed(2)} CHF</td></tr>`).join("")}</tbody></table>${sim}<div class="actions">${actions}</div></div>`}).join("");
  document.querySelectorAll("[data-cancel-order]").forEach(btn=>{btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();cancelOrder(this.dataset.cancelOrder);});});
 }
 
 function closeOrders(){document.getElementById("ordersModal").classList.remove("open")}
 function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;save();openOrders()}
 let pendingCancelOrderId="";
-function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${escapeHTML(o.id)}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
+function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${o.id}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
 function closeCancelOrder(){pendingCancelOrderId="";document.getElementById("cancelOrderModal").classList.remove("open")}
 function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");save();closeCancelOrder();openOrders()}
 function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");save();openOrders()}
@@ -438,7 +433,7 @@ function receiveOrder(id){
  pendingReceiveOrderId=id;
  const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
  document.getElementById("realDeliveryDate").value=now.toISOString().slice(0,10);
- document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${escapeHTML(o.id)}</b> — ${o.items.length} outil(s).<br><br>Indique la date à laquelle la marchandise a réellement été reçue.`;
+ document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${o.id}</b> — ${o.items.length} outil(s).<br><br>Indique la date à laquelle la marchandise a réellement été reçue.`;
  document.getElementById("receiveOrderModal").classList.add("open");
 }
 function closeReceiveOrderModal(){pendingReceiveOrderId="";document.getElementById("receiveOrderModal").classList.remove("open")}
@@ -477,7 +472,7 @@ function openProductionStatus(){
  const matches=data.filter(x=>Array.isArray(x.pieces)&&x.pieces.some(p=>p.toLowerCase()===q));
  const partial=matches.length?matches:data.filter(x=>Array.isArray(x.pieces)&&x.pieces.some(p=>p.toLowerCase().includes(q)));
  if(!partial.length){
-  document.getElementById("productionContent").innerHTML=`<div class="production-summary production-danger">🔴 Aucune pièce correspondante trouvée</div><p class="small">Aucun outil n'est actuellement associé à « ${escapeHTML(q)} ».</p>`;
+  document.getElementById("productionContent").innerHTML=`<div class="production-summary production-danger">🔴 Aucune pièce correspondante trouvée</div><p class="small">Aucun outil n'est actuellement associé à « ${q} ».</p>`;
   document.getElementById("productionModal").classList.add("open"); return;
  }
  const exactPieces=[...new Set(partial.flatMap(x=>x.pieces.filter(p=>p.toLowerCase().includes(q))))];
@@ -488,12 +483,12 @@ function openProductionStatus(){
  const details=partial.map(x=>{
    const state=x.qty<=0?`<span class="badge danger">Rupture</span>`:x.qty<=x.min?`<span class="badge warn">À surveiller</span>`:`<span class="badge ok">Disponible</span>`;
    const orderQty=Math.max(0,x.min-x.qty);
-   const order=orderQty&&x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:orderQty?`<span class="small">À commander : ${orderQty}</span>`:"";
-   return `<div class="production-tool"><div class="production-tool-main"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}</div><div>${state}</div></div><div class="production-meta">${escapeHTML(x.dimension||"—")} · Stock : <b>${x.qty}</b> · Sécurité : ${x.min} · ${escapeHTML(x.location||"Emplacement non défini")} · Fournisseur : ${escapeHTML(x.supplier||"—")} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div>${order?`<div class="production-actions">${order}</div>`:""}</div>`;
+   const order=orderQty&&x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:orderQty?`<span class="small">À commander : ${orderQty}</span>`:"";
+   return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}</div><div>${state}</div></div><div class="production-meta">${x.dimension||"—"} · Stock : <b>${x.qty}</b> · Sécurité : ${x.min} · ${x.location||"Emplacement non défini"} · Fournisseur : ${x.supplier||"—"} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div>${order?`<div class="production-actions">${order}</div>`:""}</div>`;
  }).join("");
  const actionTools=partial.filter(x=>x.qty<=x.min);
- const actions=actionTools.length?`<div style="margin-top:16px"><h3 style="margin-bottom:8px">🛠️ Actions à effectuer</h3>${actionTools.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl ? "<a class=\"order-link\" href=\""+escapeHTML(safeHttpUrl(x.orderUrl))+"\" target=\"_blank\" rel=\"noopener noreferrer\">🛒 Commander</a>" : "<span class=\"small\">Aucun lien de commande renseigné</span>";return `<div class="production-tool"><b>${escapeHTML(x.ref)}</b> — commander <b>${q}</b> outil(s)<div class="production-meta">Fournisseur : ${escapeHTML(x.supplier||"—")} · Stock actuel : ${x.qty} · Stock sécurité : ${x.min} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</div><div class="production-actions">${link}</div></div>`}).join("")}</div>`:"";
- document.getElementById("productionContent").innerHTML=`<div class="production-summary production-${status}">${title}<br><span style="font-size:13px;font-weight:400">Pièce : ${escapeHTML(exactPieces.join(" / "))} · ${partial.length} outil(s) associé(s)</span></div>${blockers.length?`<p><b>Outil(s) bloquant(s) :</b> ${escapeHTML(blockers.map(x=>x.ref).join(", "))}</p>`:""}${actions}${details}`;
+ const actions=actionTools.length?`<div style="margin-top:16px"><h3 style="margin-bottom:8px">🛠️ Actions à effectuer</h3>${actionTools.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl ? "<a class=\"order-link\" href=\""+x.orderUrl+"\" target=\"_blank\" rel=\"noopener\">🛒 Commander</a>" : "<span class=\"small\">Aucun lien de commande renseigné</span>";return `<div class="production-tool"><b>${x.ref}</b> — commander <b>${q}</b> outil(s)<div class="production-meta">Fournisseur : ${x.supplier||"—"} · Stock actuel : ${x.qty} · Stock sécurité : ${x.min} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</div><div class="production-actions">${link}</div></div>`}).join("")}</div>`:"";
+ document.getElementById("productionContent").innerHTML=`<div class="production-summary production-${status}">${title}<br><span style="font-size:13px;font-weight:400">Pièce : ${exactPieces.join(" / ")} · ${partial.length} outil(s) associé(s)</span></div>${blockers.length?`<p><b>Outil(s) bloquant(s) :</b> ${blockers.map(x=>x.ref).join(", ")}</p>`:""}${actions}${details}`;
  document.getElementById("productionModal").classList.add("open");
 }
 function closeProductionStatus(){document.getElementById("productionModal").classList.remove("open")}
@@ -519,19 +514,19 @@ function openAnalysis(){
  document.getElementById("analysisSummary").innerHTML=`
  <div class="analysis-cards">
   <div class="analysis-card accent"><div class="small">Total des sorties</div><b>${totalSorties}</b><div class="analysis-total">outils sortis du stock</div></div>
-  <div class="analysis-card success"><div class="small">Type dominant</div><b>${escapeHTML(topType[0])}</b><div class="analysis-total">${topType[1]} sortie(s)</div></div>
-  <div class="analysis-card warning"><div class="small">Outil le plus sollicité</div><b>${escapeHTML(topTool[0])}</b><div class="analysis-total">${topTool[1]} sortie(s)</div></div>
+  <div class="analysis-card success"><div class="small">Type dominant</div><b>${topType[0]}</b><div class="analysis-total">${topType[1]} sortie(s)</div></div>
+  <div class="analysis-card warning"><div class="small">Outil le plus sollicité</div><b>${topTool[0]}</b><div class="analysis-total">${topTool[1]} sortie(s)</div></div>
  </div>`;
  if(!types.length){
   document.getElementById("analysisContent").innerHTML=`<div class="analysis-empty">Aucune sortie n'est encore enregistrée. L'analyse apparaîtra dès que les mouvements de stock seront utilisés.</div>`;
  }else{
   const max=types[0][1];
-  const typeRows=types.map(([name,count])=>`<tr><td class="analysis-type-name"><b>${escapeHTML(name)}</b></td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/max)*100}%"></div></div></td></tr>`).join("");
+  const typeRows=types.map(([name,count])=>`<tr><td class="analysis-type-name"><b>${name}</b></td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/max)*100}%"></div></div></td></tr>`).join("");
   const topTools=tools.slice(0,10);
   const maxTool=topTools[0]?.[1]||1;
   const toolRows=topTools.map(([ref,count])=>{
    const x=data.find(t=>t.ref===ref);
-   return `<tr><td class="analysis-tool-ref">${escapeHTML(ref)}</td><td class="analysis-tool-type">${escapeHTML(x?.toolType||"—")}</td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/maxTool)*100}%"></div></div></td></tr>`;
+   return `<tr><td class="analysis-tool-ref">${ref}</td><td class="analysis-tool-type">${x?.toolType||"—"}</td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/maxTool)*100}%"></div></div></td></tr>`;
   }).join("");
   document.getElementById("analysisContent").innerHTML=`
    <div class="analysis-section">
@@ -633,10 +628,10 @@ function saveMovement(){
  <div class="stock-current">Stock actuel : ${x.qty}</div>
  ${movements.length?`<div class="history-list">${movements.map(m=>`
  <div class="history-item">
-   <div>${escapeHTML(m.date||"—")}</div>
-   <div class="history-${m.type==="entrée"?"entrée":m.type==="sortie"?"sortie":"correction"}">${escapeHTML(m.type)}</div>
+   <div>${m.date}</div>
+   <div class="history-${m.type}">${m.type}</div>
    <div><b>${m.delta>0?"+":""}${m.delta}</b></div>
-   <div>${escapeHTML(m.note||"—")}<br><span class="small">${m.oldQty} → ${m.newQty}</span></div>
+   <div>${m.note||"—"}<br><span class="small">${m.oldQty} → ${m.newQty}</span></div>
  </div>`).join("")}</div>`:"<p class='small'>Aucun mouvement enregistré.</p>"}`;
  document.getElementById("historyModal").classList.add("open");
 }
@@ -657,7 +652,7 @@ function openActivityHistory(){
    const sign=m.type==="entrée"?"+":m.type==="sortie"?"−":"";
    const label=m.type==="entrée"?"Entrée":m.type==="sortie"?"Sortie":"Correction";
    const archived=m.archived?'<span class="badge warn" style="margin-left:8px">Outil archivé</span>':'';
-   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${escapeHTML(m.ref)}${archived}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
+   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}${archived}</div><div class="activity-meta">${m.note||m.supplier||"Mouvement de stock"} · ${m.date||"—"}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
  }).join(""):'<div class="dash-empty">Aucun mouvement enregistré.</div>';
  document.getElementById("activityHistoryModal").classList.add("open");
 }
@@ -700,20 +695,20 @@ function showDetails(refValue){
  document.getElementById("detailTitle").textContent=x.ref+" — "+x.type;
  document.getElementById("detailContent").innerHTML=`
  <div class="tool-detail-grid">
-   <div class="detail-card detail-card-accent"><div class="small">Catégorie</div><b>${escapeHTML(x.type||"—")}</b></div>
-   <div class="detail-card"><div class="small">Type d'outil</div><b>${escapeHTML(x.toolType||"—")}</b></div>
-   <div class="detail-card"><div class="small">Fournisseur</div><b>${escapeHTML(x.supplier||"—")}</b></div>
+   <div class="detail-card detail-card-accent"><div class="small">Catégorie</div><b>${x.type||"—"}</b></div>
+   <div class="detail-card"><div class="small">Type d'outil</div><b>${x.toolType||"—"}</b></div>
+   <div class="detail-card"><div class="small">Fournisseur</div><b>${x.supplier||"—"}</b></div>
    <div class="detail-card"><div class="small">Référence fournisseur</div><b>${x.supplierRef||"—"}</b>
-   ${x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:""}</div>
-   <div class="detail-card"><div class="small">Dimension</div><b>${escapeHTML(x.dimension||"—")}</b></div>
+   ${x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:""}</div>
+   <div class="detail-card"><div class="small">Dimension</div><b>${x.dimension||"—"}</b></div>
    <div class="detail-card"><div class="small">Prix unitaire</div><b>${x.price.toFixed(2)} CHF</b></div>
    <div class="detail-card detail-stock"><div class="small">Stock actuel</div><b>${x.qty}</b><span class="detail-stock-status ${x.qty<=x.min?"is-low":"is-ok"}">${x.qty<=x.min?"Stock à surveiller":"Stock OK"}</span></div>
    <div class="detail-card"><div class="small">Stock de sécurité</div><b>${x.min}</b></div>
    <div class="detail-card"><div class="small">Quantité à commander</div><b>${orderQty||"—"}</b></div>
    <div class="detail-card"><div class="small">Délai d'approvisionnement</div><b>${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Emplacement</div><b>📍 ${escapeHTML(x.location||"—")}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Pièces utilisées</div><b>${Array.isArray(x.pieces)&&x.pieces.length?x.pieces.map(p=>`<span class="piece-pill">${escapeHTML(p)}</span>`).join(" "):"—"}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Remarque</div><b>${escapeHTML(x.note||"—")}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Emplacement</div><b>📍 ${x.location||"—"}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Pièces utilisées</div><b>${Array.isArray(x.pieces)&&x.pieces.length?x.pieces.map(p=>`<span class="piece-pill">${p}</span>`).join(" "):"—"}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Remarque</div><b>${x.note||"—"}</b></div>
  </div>`;
  document.getElementById("detailsModal").classList.add("open");
 }
@@ -734,7 +729,7 @@ function orderFromDetail(){
  pendingOrderCandidates=[x];
  document.getElementById("createOrderSupplier").textContent="Fournisseur : "+pendingOrderSupplier+" — indiquez la quantité réellement commandée.";
  const suggested=Math.max(1,x.min-x.qty);
- document.getElementById("createOrderItems").innerHTML=`<div style="border:1px solid #e1e7ee;border-radius:10px;padding:12px;margin-bottom:10px"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}</div><div class="small" style="margin:4px 0 8px">Stock : ${x.qty} · Sécurité : ${x.min} · Suggestion : ${suggested} · Prix : ${Number(x.price||0).toFixed(2)} CHF</div><label class="small">Quantité commandée</label><input type="number" id="orderQty_0" min="1" step="1" value="${suggested}" style="width:140px"></div>`;
+ document.getElementById("createOrderItems").innerHTML=`<div style="border:1px solid #e1e7ee;border-radius:10px;padding:12px;margin-bottom:10px"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}</div><div class="small" style="margin:4px 0 8px">Stock : ${x.qty} · Sécurité : ${x.min} · Suggestion : ${suggested} · Prix : ${Number(x.price||0).toFixed(2)} CHF</div><label class="small">Quantité commandée</label><input type="number" id="orderQty_0" min="1" step="1" value="${suggested}" style="width:140px"></div>`;
  document.getElementById("detailsModal").classList.remove("open");
  document.getElementById("createOrderModal").classList.add("open");
 }
@@ -744,14 +739,14 @@ function deleteTool(){
  if(!x)return;
  const activeOrder=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===x.ref));
  if(activeOrder){
-   document.getElementById("deleteConfirmText").innerHTML="Impossible de supprimer cet outil : il est présent dans une commande active (<b>"+escapeHTML(activeOrder.id)+"</b>).";
+   document.getElementById("deleteConfirmText").innerHTML="Impossible de supprimer cet outil : il est présent dans une commande active (<b>"+activeOrder.id+"</b>).";
    document.querySelector('#deleteConfirmModal .actions button:last-child').style.display="none";
    pendingDeleteRef=null;
    document.getElementById("deleteConfirmModal").classList.add("open");
    return;
  }
  pendingDeleteRef=x.ref;
- document.getElementById("deleteConfirmText").innerHTML="Voulez-vous vraiment supprimer définitivement <b>"+escapeHTML(x.ref)+"</b> ?<br><br>L’outil sera retiré du stock actif, mais son historique de mouvements sera conservé dans les archives.";
+ document.getElementById("deleteConfirmText").innerHTML="Voulez-vous vraiment supprimer définitivement <b>"+x.ref+"</b> ?<br><br>L’outil sera retiré du stock actif, mais son historique de mouvements sera conservé dans les archives.";
  document.querySelector('#deleteConfirmModal .actions button:last-child').style.display="inline-block";
  document.getElementById("deleteConfirmModal").classList.add("open");
 }
@@ -778,7 +773,7 @@ function closeModal(){document.getElementById("modal").classList.remove("open")}
 function renderPieceTags(){
  const box=document.getElementById("selectedPieces");
  if(!box)return;
- box.innerHTML=currentPieces.map((piece,i)=>`<span class="piece-tag">${escapeHTML(piece)}<button type="button" onclick="removePiece(${i})" title="Retirer">×</button></span>`).join("");
+ box.innerHTML=currentPieces.map((piece,i)=>`<span class="piece-tag">${piece}<button type="button" onclick="removePiece(${i})" title="Retirer">×</button></span>`).join("");
 }
 function addPiece(){
  const input=document.getElementById("pieceInput");
@@ -814,24 +809,15 @@ function add(){
   if(!el || !String(el.value).trim()){alert("Le champ « "+label+" » est obligatoire.");if(el)el.focus();return}
  }
  const priceValue=Number(fields.price.value),qtyValue=Number(fields.qty.value),minValue=Number(fields.min.value);
- const leadRaw=fields.lead.value.trim();
- const leadNumber=leadRaw===""?null:Number(leadRaw);
- const leadValue=leadRaw===""?"":leadNumber;
- const orderUrlValue=fields.orderUrl.value.trim();
+ const leadValue=fields.lead.value===""?"":Math.max(0,Math.floor(Number(fields.lead.value)));
  if(!Number.isFinite(priceValue)||priceValue<0){alert("Le prix doit être un nombre positif.");fields.price.focus();return}
- if(!Number.isInteger(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre entier positif ou nul.");fields.qty.focus();return}
- if(!Number.isInteger(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre entier positif ou nul.");fields.min.focus();return}
- if(leadRaw!==""&&(!Number.isInteger(leadNumber)||leadNumber<0)){alert("Le délai doit être un nombre entier de jours, positif ou nul.");fields.lead.focus();return}
- if(orderUrlValue){
-  let parsedOrderUrl;
-  try{parsedOrderUrl=new URL(orderUrlValue)}catch{alert("Le lien de commande doit être une URL valide commençant par https:// ou http://.");fields.orderUrl.focus();return}
-  if(!["https:","http:"].includes(parsedOrderUrl.protocol)){alert("Le lien de commande doit commencer par https:// ou http://.");fields.orderUrl.focus();return}
- }
+ if(!Number.isFinite(qtyValue)||qtyValue<0){alert("La quantité doit être un nombre positif.");fields.qty.focus();return}
+ if(!Number.isFinite(minValue)||minValue<0){alert("Le stock de sécurité doit être un nombre positif.");fields.min.focus();return}
  const newRef=fields.ref.value.trim();
  // Une référence interne doit être unique, à l’ajout comme à la modification.
  if(data.some(t=>t.ref===newRef && t.ref!==editingRef)){alert("Cette référence existe déjà.");fields.ref.focus();return}
  const existingTool=editingRef!==null?data.find(t=>t.ref===editingRef):null;
- const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:orderUrlValue,dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
+ const x={...(existingTool||{}),ref:newRef,type:fields.type.value,toolType:fields.toolType.value,supplier:fields.supplier.value.trim(),supplierRef:fields.supplierRef.value.trim(),orderUrl:fields.orderUrl.value.trim(),dimension:fields.dimension.value.trim(),price:priceValue,qty:qtyValue,min:minValue,location:fields.location.value.trim(),lead:leadValue,pieces:[...currentPieces],note:fields.note.value.trim(),movements:Array.isArray(existingTool?.movements)?existingTool.movements:[]};
  if(existingTool){
   const index=data.findIndex(t=>t.ref===editingRef);
   if(index>=0)data[index]=x;else data.push(x);
