@@ -100,7 +100,9 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
   <form class="auth-card" id="authForm">
     <div class="brand" style="margin-bottom:22px"><div class="brand-mark" style="background:#0b2237;border-radius:8px"><span></span></div><div class="brand-text"><div class="brand-name" style="color:#10263b">ALPATOOL</div><div class="brand-sub" style="color:#64748b">CONNEXION SÉCURISÉE</div></div></div>
     <h1>Connexion à ALPATOOL</h1>
-    <p>Connecte-toi avec ton compte pour tester l’authentification. Cette version de test ne synchronise pas encore le stock avec la base de données.</p>
+    <p>Connecte-toi avec ton compte. Lors de la création d’un compte, un atelier privé sera automatiquement créé pour toi.</p>
+    <label for="authWorkshop">Nom de l’atelier (nouveau compte)</label>
+    <input id="authWorkshop" type="text" maxlength="160" autocomplete="organization" placeholder="Ex. : Atelier mécanique">
     <label for="authEmail">Adresse e-mail</label>
     <input id="authEmail" type="email" autocomplete="email" required placeholder="nom@entreprise.ch">
     <label for="authPassword">Mot de passe</label>
@@ -906,7 +908,13 @@ document.getElementById("authCreate").addEventListener("click",async()=>{
   if(!email||!password||password.length<8){setAuthMessage("Saisis un e-mail valide et un mot de passe d’au moins 8 caractères.",true);return;}
   const button=document.getElementById("authCreate");button.disabled=true;setAuthMessage("Création du compte…");
   try{
-    const {data:result,error}=await supabaseClient.auth.signUp({email,password});
+    const workshopName=document.getElementById("authWorkshop").value.trim();
+    const displayName=email.split("@")[0];
+    const {data:result,error}=await supabaseClient.auth.signUp({
+      email,
+      password,
+      options:{data:{workshop_name:workshopName,display_name:displayName}}
+    });
     if(error)throw error;
     if(result.session){setAuthMessage("Compte créé et connecté.");}
     else{setAuthMessage("Compte créé. Vérifie ta boîte e-mail pour confirmer l’adresse avant de te connecter.");}
