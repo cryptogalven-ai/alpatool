@@ -78,8 +78,39 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </style>
 
 
+
+/* Authentification Supabase — version de test */
+#authGate{position:fixed;inset:0;z-index:5000;background:#eef2f6;display:flex;align-items:center;justify-content:center;padding:20px}
+#authGate[hidden]{display:none}
+.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid #dfe6ee;border-radius:16px;padding:28px;box-shadow:0 12px 40px #0b20331a}
+.auth-card h1{margin:0 0 8px;color:#10263b;font-size:24px}.auth-card p{color:#63758a;line-height:1.5;font-size:14px}
+.auth-card label{margin-top:14px;font-size:13px;font-weight:700;color:#34495e}
+.auth-card input{width:100%;margin-top:6px}
+.auth-actions{display:flex;gap:8px;margin-top:18px}.auth-actions button{flex:1;padding:11px 12px;border:0;border-radius:8px;font-weight:700;cursor:pointer}
+#authSubmit{background:#2d7ff9;color:#fff}#authCreate{background:#e9eff6;color:#17324a}
+#authMessage{min-height:22px;margin-top:12px;font-size:13px;overflow-wrap:anywhere}
+#authUserBar{display:none;align-items:center;gap:10px;color:#dce7f0;font-size:12px}
+#authUserBar button{border:1px solid #ffffff66;border-radius:7px;background:transparent;color:#fff;padding:7px 9px;cursor:pointer}
+#authTestNotice{display:none;margin:0 0 14px;padding:12px 14px;background:#fff7df;border:1px solid #f3df9a;border-radius:9px;color:#76551a;font-size:13px}
+@media(max-width:500px){.auth-card{padding:22px}.auth-actions{flex-direction:column}}
+
 </head>
 <body>
+
+<div id="authGate">
+  <form class="auth-card" id="authForm">
+    <div class="brand" style="margin-bottom:22px"><div class="brand-mark" style="background:#0b2237;border-radius:8px"><span></span></div><div class="brand-text"><div class="brand-name" style="color:#10263b">ALPATOOL</div><div class="brand-sub" style="color:#64748b">CONNEXION SÉCURISÉE</div></div></div>
+    <h1>Connexion à ALPATOOL</h1>
+    <p>Connecte-toi avec ton compte pour tester l’authentification. Cette version de test ne synchronise pas encore le stock avec la base de données.</p>
+    <label for="authEmail">Adresse e-mail</label>
+    <input id="authEmail" type="email" autocomplete="email" required placeholder="nom@entreprise.ch">
+    <label for="authPassword">Mot de passe</label>
+    <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum">
+    <div class="auth-actions"><button id="authSubmit" type="submit">Se connecter</button><button id="authCreate" type="button">Créer un compte</button></div>
+    <div id="authMessage" role="status" aria-live="polite"></div>
+  </form>
+</div>
+
 <header>
 <div class="brand">
   <div class="brand-mark"><span></span></div>
@@ -87,6 +118,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </div>
 <div class="header-right"><span class="header-pill">ATELIER</span><span>Precision · Control · Production</span></div>
 </header>
+<div id="authUserBar" style="display:none"></div><div id="authTestNotice">Mode test : l’authentification est reliée à Supabase, mais les outils et commandes affichés restent enregistrés localement dans ce navigateur. Ne saisis pas encore de données réelles.</div>
 <div class="wrap">
 <div class="cards">
 <div class="card"><div class="label">Outils en stock</div><div class="value" id="count">0</div></div>
@@ -253,7 +285,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </div>
 <div class="actions tool-form-actions"><button onclick="closeModal()">Annuler</button><button class="primary" id="saveToolButton" onclick="add()">Enregistrer l'outil</button></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://uotkyxkyvdtyhpdabkjz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_6_Vlfr2BK_XlT2yp-L64BA_CTQP_9J-";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const seed=[
 {ref:"FS-024",type:"Spéciale",toolType:"Fraise en bout",supplier:"Fraisa",supplierRef:"123456",dimension:"Ø8 × 60 mm",price:85,qty:2,min:1,location:"Poste FAO / tiroir 3",lead:42,pieces:"P-12548, P-12874, P-13201",note:"Outil spécial"},
 {ref:"FS-031",type:"Spéciale",toolType:"Fraise en bout",supplier:"Fournisseur X",supplierRef:"SX-882",dimension:"Ø6 × 50 mm",price:240,qty:1,min:1,location:"Poste FAO / tiroir 4",lead:56,pieces:"P-14020",note:"Critique"},
@@ -826,6 +862,65 @@ function add(){
  }else data.push(x);
  save();closeModal();document.querySelectorAll("#modal input").forEach(i=>i.value="");resetPieces();resetFormMode();render();
 }
+
+// Authentification de test : aucun accès au contenu de l'application sans session valide.
+const authGate=document.getElementById("authGate");
+const authForm=document.getElementById("authForm");
+const authMessage=document.getElementById("authMessage");
+const authUserBar=document.getElementById("authUserBar");
+const authTestNotice=document.getElementById("authTestNotice");
+function setAuthMessage(message,isError=false){authMessage.textContent=message;authMessage.style.color=isError?"#b42318":"#166534";}
+function showAuthenticatedSession(user){
+  authGate.hidden=true;
+  authUserBar.style.display="flex";
+  authUserBar.innerHTML="";
+  const label=document.createElement("span");
+  label.textContent="Connecté : "+(user.email||"utilisateur");
+  const logout=document.createElement("button");
+  logout.type="button";logout.textContent="Déconnexion";
+  logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(error)setAuthMessage(error.message,true);});
+  authUserBar.append(label,logout);
+  authTestNotice.style.display="block";
+}
+function showSignedOut(){
+  authGate.hidden=false;
+  authUserBar.style.display="none";
+  authTestNotice.style.display="none";
+}
+authForm.addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  const submit=document.getElementById("authSubmit");
+  submit.disabled=true;setAuthMessage("Connexion en cours…");
+  try{
+    const {data:result,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    if(result.user) setAuthMessage("Connexion réussie.");
+  }catch(error){setAuthMessage(error.message||"Connexion impossible.",true);}
+  finally{submit.disabled=false;}
+});
+document.getElementById("authCreate").addEventListener("click",async()=>{
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||!password||password.length<8){setAuthMessage("Saisis un e-mail valide et un mot de passe d’au moins 8 caractères.",true);return;}
+  const button=document.getElementById("authCreate");button.disabled=true;setAuthMessage("Création du compte…");
+  try{
+    const {data:result,error}=await supabaseClient.auth.signUp({email,password});
+    if(error)throw error;
+    if(result.session){setAuthMessage("Compte créé et connecté.");}
+    else{setAuthMessage("Compte créé. Vérifie ta boîte e-mail pour confirmer l’adresse avant de te connecter.");}
+  }catch(error){setAuthMessage(error.message||"Création du compte impossible.",true);}
+  finally{button.disabled=false;}
+});
+supabaseClient.auth.onAuthStateChange((_event,session)=>{
+  if(session?.user)showAuthenticatedSession(session.user);else showSignedOut();
+});
+supabaseClient.auth.getSession().then(({data,error})=>{
+  if(error){showSignedOut();setAuthMessage("Impossible de vérifier la session : "+error.message,true);return;}
+  if(data.session?.user)showAuthenticatedSession(data.session.user);else showSignedOut();
+});
+
 render();
 </script>
 </body>
