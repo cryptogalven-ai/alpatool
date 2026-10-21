@@ -296,8 +296,9 @@ function render(){
   const st=x.qty<=0?"danger":activeOrderStatus==="Commandée"?"warn":x.qty<=x.min?"warn":"ok", label=x.qty<=0?"Rupture":activeOrderStatus==="Commandée"?"Commandée":x.qty<=x.min?"À commander":"OK";
   const orderQty=x.qty<=x.min?Math.max(1,x.min-x.qty):0;
   const action=activeOrderStatus==="Commandée"?`<span class="small" style="font-weight:700">📦 Commande en cours</span>`:x.qty<=x.min?(x.orderUrl?`<a class="order-link" style="margin-top:0" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`):"—";
-  return `<tr class="tool-row" onclick="showDetails('${x.ref.replace(/'/g,"\\'")}')" title="Cliquer pour voir la fiche détaillée"><td><b>${escapeHTML(x.ref)}</b><br><span class="small">${escapeHTML(x.supplier)}</span></td><td>${escapeHTML(x.type)}</td><td>${escapeHTML(x.toolType||"—")}</td><td>${escapeHTML(x.dimension)}</td><td><b>${x.qty}</b></td><td><b>${x.min}</b></td><td>${x.price.toFixed(2)} CHF</td><td>${(x.price*x.qty).toFixed(2)} CHF</td><td>${escapeHTML(x.location)}</td><td>${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</td><td>${orderQty?`<b>${orderQty}</b>`:"—"}</td><td><span class="badge ${st}">${label}</span></td><td>${action}</td></tr>`
+  return `<tr class="tool-row" data-tool-ref="${escapeHTML(x.ref)}" title="Cliquer pour voir la fiche détaillée"><td><b>${escapeHTML(x.ref)}</b><br><span class="small">${escapeHTML(x.supplier)}</span></td><td>${escapeHTML(x.type)}</td><td>${escapeHTML(x.toolType||"—")}</td><td>${escapeHTML(x.dimension)}</td><td><b>${x.qty}</b></td><td><b>${x.min}</b></td><td>${x.price.toFixed(2)} CHF</td><td>${(x.price*x.qty).toFixed(2)} CHF</td><td>${escapeHTML(x.location)}</td><td>${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</td><td>${orderQty?`<b>${orderQty}</b>`:"—"}</td><td><span class="badge ${st}">${label}</span></td><td>${action}</td></tr>`
  }).join("")||'<tr><td colspan="12">Aucun résultat.</td></tr>';
+ document.querySelectorAll("#body tr[data-tool-ref]").forEach(row=>row.addEventListener("click",()=>showDetails(row.dataset.toolRef)));
  document.getElementById("count").textContent=data.reduce((a,x)=>a+x.qty,0);
  document.getElementById("special").textContent=data.filter(x=>x.type==="Spéciale").length;
  document.getElementById("orders").textContent=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref)).length;
@@ -424,7 +425,7 @@ function renderOrderHistory(query){
 function closeOrders(){document.getElementById("ordersModal").classList.remove("open")}
 function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;save();openOrders()}
 let pendingCancelOrderId="";
-function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${o.id}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
+function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${escapeHTML(o.id)}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
 function closeCancelOrder(){pendingCancelOrderId="";document.getElementById("cancelOrderModal").classList.remove("open")}
 function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");save();closeCancelOrder();openOrders()}
 function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");save();openOrders()}
@@ -631,7 +632,7 @@ function saveMovement(){
  ${movements.length?`<div class="history-list">${movements.map(m=>`
  <div class="history-item">
    <div>${m.date}</div>
-   <div class="history-${m.type}">${m.type}</div>
+   <div class="history-${m.type==="entrée"?"entrée":m.type==="sortie"?"sortie":"correction"}">${escapeHTML(m.type)}</div>
    <div><b>${m.delta>0?"+":""}${m.delta}</b></div>
    <div>${m.note||"—"}<br><span class="small">${m.oldQty} → ${m.newQty}</span></div>
  </div>`).join("")}</div>`:"<p class='small'>Aucun mouvement enregistré.</p>"}`;
@@ -654,7 +655,7 @@ function openActivityHistory(){
    const sign=m.type==="entrée"?"+":m.type==="sortie"?"−":"";
    const label=m.type==="entrée"?"Entrée":m.type==="sortie"?"Sortie":"Correction";
    const archived=m.archived?'<span class="badge warn" style="margin-left:8px">Outil archivé</span>':'';
-   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}${archived}</div><div class="activity-meta">${m.note||m.supplier||"Mouvement de stock"} · ${m.date||"—"}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
+   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}${archived}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
  }).join(""):'<div class="dash-empty">Aucun mouvement enregistré.</div>';
  document.getElementById("activityHistoryModal").classList.add("open");
 }
@@ -741,14 +742,14 @@ function deleteTool(){
  if(!x)return;
  const activeOrder=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===x.ref));
  if(activeOrder){
-   document.getElementById("deleteConfirmText").innerHTML="Impossible de supprimer cet outil : il est présent dans une commande active (<b>"+activeOrder.id+"</b>).";
+   document.getElementById("deleteConfirmText").innerHTML="Impossible de supprimer cet outil : il est présent dans une commande active (<b>"+escapeHTML(activeOrder.id)+"</b>).";
    document.querySelector('#deleteConfirmModal .actions button:last-child').style.display="none";
    pendingDeleteRef=null;
    document.getElementById("deleteConfirmModal").classList.add("open");
    return;
  }
  pendingDeleteRef=x.ref;
- document.getElementById("deleteConfirmText").innerHTML="Voulez-vous vraiment supprimer définitivement <b>"+x.ref+"</b> ?<br><br>L’outil sera retiré du stock actif, mais son historique de mouvements sera conservé dans les archives.";
+ document.getElementById("deleteConfirmText").innerHTML="Voulez-vous vraiment supprimer définitivement <b>"+escapeHTML(x.ref)+"</b> ?<br><br>L’outil sera retiré du stock actif, mais son historique de mouvements sera conservé dans les archives.";
  document.querySelector('#deleteConfirmModal .actions button:last-child').style.display="inline-block";
  document.getElementById("deleteConfirmModal").classList.add("open");
 }
