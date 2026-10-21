@@ -367,7 +367,7 @@ function confirmCreateOrder(){
    if(!Number.isInteger(q)||q<=0){alert("La quantité commandée pour "+x.ref+" doit être un nombre entier supérieur à 0.");input?.focus();return;}
    items.push({ref:x.ref,qty:q,unitPrice:Number(x.price||0),total:q*Number(x.price||0),lead:Number(x.lead||0)});
  }
- const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0)};
+ const maxLead=Math.max(0,...items.map(i=>Number(i.lead||0)));const expected=new Date();expected.setHours(12,0,0,0);expected.setDate(expected.getDate()+maxLead);const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"Commandée",orderedAt:new Date().toLocaleDateString("fr-CH"),expectedDelivery:expected.toLocaleDateString("fr-CH"),leadDays:maxLead,total:items.reduce((a,x)=>a+x.total,0)};
  orders.unshift(order);save();closeCreateOrder();openOrders();
 }
 function formatDateForInput(dateText){
