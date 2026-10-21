@@ -896,7 +896,8 @@ async function initializeCloudData(user){
  const {data:cloudTools,error:toolsError}=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId).is("archived_at",null).order("ref");
  if(toolsError)throw new Error("Lecture des outils impossible : "+toolsError.message);
  if(cloudTools.length){
-  data=cloudTools.map(toolFromCloud);
+  const localMovements=new Map(data.map(t=>[t.ref,Array.isArray(t.movements)?t.movements:[]]));
+  data=cloudTools.map(row=>({...toolFromCloud(row),movements:localMovements.get(row.ref)||[]}));
  }else{
   // Première connexion : importer les outils de démonstration déjà affichés dans ce navigateur.
   const {error:importError}=await supabaseClient.from("tools").upsert(data.map(toolToCloud),{onConflict:"workshop_id,ref"});
