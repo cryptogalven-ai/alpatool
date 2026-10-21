@@ -436,7 +436,7 @@ function receiveOrder(id){
  pendingReceiveOrderId=id;
  const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
  document.getElementById("realDeliveryDate").value=now.toISOString().slice(0,10);
- document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${o.id}</b> — ${o.items.length} outil(s).<br><br>Indique la date à laquelle la marchandise a réellement été reçue.`;
+ document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${escapeHTML(o.id)}</b> — ${o.items.length} outil(s).<br><br>Indique la date à laquelle la marchandise a réellement été reçue.`;
  document.getElementById("receiveOrderModal").classList.add("open");
 }
 function closeReceiveOrderModal(){pendingReceiveOrderId="";document.getElementById("receiveOrderModal").classList.remove("open")}
@@ -475,7 +475,7 @@ function openProductionStatus(){
  const matches=data.filter(x=>Array.isArray(x.pieces)&&x.pieces.some(p=>p.toLowerCase()===q));
  const partial=matches.length?matches:data.filter(x=>Array.isArray(x.pieces)&&x.pieces.some(p=>p.toLowerCase().includes(q)));
  if(!partial.length){
-  document.getElementById("productionContent").innerHTML=`<div class="production-summary production-danger">🔴 Aucune pièce correspondante trouvée</div><p class="small">Aucun outil n'est actuellement associé à « ${q} ».</p>`;
+  document.getElementById("productionContent").innerHTML=`<div class="production-summary production-danger">🔴 Aucune pièce correspondante trouvée</div><p class="small">Aucun outil n'est actuellement associé à « ${escapeHTML(q)} ».</p>`;
   document.getElementById("productionModal").classList.add("open"); return;
  }
  const exactPieces=[...new Set(partial.flatMap(x=>x.pieces.filter(p=>p.toLowerCase().includes(q))))];
@@ -487,10 +487,10 @@ function openProductionStatus(){
    const state=x.qty<=0?`<span class="badge danger">Rupture</span>`:x.qty<=x.min?`<span class="badge warn">À surveiller</span>`:`<span class="badge ok">Disponible</span>`;
    const orderQty=Math.max(0,x.min-x.qty);
    const order=orderQty&&x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:orderQty?`<span class="small">À commander : ${orderQty}</span>`:"";
-   return `<div class="production-tool"><div class="production-tool-main"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}</div><div>${state}</div></div><div class="production-meta">${x.dimension||"—"} · Stock : <b>${x.qty}</b> · Sécurité : ${x.min} · ${x.location||"Emplacement non défini"} · Fournisseur : ${x.supplier||"—"} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div>${order?`<div class="production-actions">${order}</div>`:""}</div>`;
+   return `<div class="production-tool"><div class="production-tool-main"><div><b>${escapeHTML(x.ref)}</b> — ${escapeHTML(x.toolType||"Autre")}</div><div>${state}</div></div><div class="production-meta">${escapeHTML(x.dimension||"—")} · Stock : <b>${x.qty}</b> · Sécurité : ${x.min} · ${escapeHTML(x.location||"Emplacement non défini")} · Fournisseur : ${escapeHTML(x.supplier||"—")} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div>${order?`<div class="production-actions">${order}</div>`:""}</div>`;
  }).join("");
  const actionTools=partial.filter(x=>x.qty<=x.min);
- const actions=actionTools.length?`<div style="margin-top:16px"><h3 style="margin-bottom:8px">🛠️ Actions à effectuer</h3>${actionTools.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl ? "<a class=\"order-link\" href=\""+x.orderUrl+"\" target=\"_blank\" rel=\"noopener\">🛒 Commander</a>" : "<span class=\"small\">Aucun lien de commande renseigné</span>";return `<div class="production-tool"><b>${escapeHTML(x.ref)}</b> — commander <b>${q}</b> outil(s)<div class="production-meta">Fournisseur : ${escapeHTML(x.supplier||"—")} · Stock actuel : ${x.qty} · Stock sécurité : ${x.min} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</div><div class="production-actions">${link}</div></div>`}).join("")}</div>`:"";
+ const actions=actionTools.length?`<div style="margin-top:16px"><h3 style="margin-bottom:8px">🛠️ Actions à effectuer</h3>${actionTools.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl ? "<a class=\"order-link\" href=\""+escapeHTML(safeHttpUrl(x.orderUrl))+"\" target=\"_blank\" rel=\"noopener noreferrer\">🛒 Commander</a>" : "<span class=\"small\">Aucun lien de commande renseigné</span>";return `<div class="production-tool"><b>${escapeHTML(x.ref)}</b> — commander <b>${q}</b> outil(s)<div class="production-meta">Fournisseur : ${escapeHTML(x.supplier||"—")} · Stock actuel : ${x.qty} · Stock sécurité : ${x.min} · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</div><div class="production-actions">${link}</div></div>`}).join("")}</div>`:"";
  document.getElementById("productionContent").innerHTML=`<div class="production-summary production-${status}">${title}<br><span style="font-size:13px;font-weight:400">Pièce : ${escapeHTML(exactPieces.join(" / "))} · ${partial.length} outil(s) associé(s)</span></div>${blockers.length?`<p><b>Outil(s) bloquant(s) :</b> ${escapeHTML(blockers.map(x=>x.ref).join(", "))}</p>`:""}${actions}${details}`;
  document.getElementById("productionModal").classList.add("open");
 }
@@ -517,19 +517,19 @@ function openAnalysis(){
  document.getElementById("analysisSummary").innerHTML=`
  <div class="analysis-cards">
   <div class="analysis-card accent"><div class="small">Total des sorties</div><b>${totalSorties}</b><div class="analysis-total">outils sortis du stock</div></div>
-  <div class="analysis-card success"><div class="small">Type dominant</div><b>${topType[0]}</b><div class="analysis-total">${topType[1]} sortie(s)</div></div>
-  <div class="analysis-card warning"><div class="small">Outil le plus sollicité</div><b>${topTool[0]}</b><div class="analysis-total">${topTool[1]} sortie(s)</div></div>
+  <div class="analysis-card success"><div class="small">Type dominant</div><b>${escapeHTML(topType[0])}</b><div class="analysis-total">${topType[1]} sortie(s)</div></div>
+  <div class="analysis-card warning"><div class="small">Outil le plus sollicité</div><b>${escapeHTML(topTool[0])}</b><div class="analysis-total">${topTool[1]} sortie(s)</div></div>
  </div>`;
  if(!types.length){
   document.getElementById("analysisContent").innerHTML=`<div class="analysis-empty">Aucune sortie n'est encore enregistrée. L'analyse apparaîtra dès que les mouvements de stock seront utilisés.</div>`;
  }else{
   const max=types[0][1];
-  const typeRows=types.map(([name,count])=>`<tr><td class="analysis-type-name"><b>${name}</b></td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/max)*100}%"></div></div></td></tr>`).join("");
+  const typeRows=types.map(([name,count])=>`<tr><td class="analysis-type-name"><b>${escapeHTML(name)}</b></td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/max)*100}%"></div></div></td></tr>`).join("");
   const topTools=tools.slice(0,10);
   const maxTool=topTools[0]?.[1]||1;
   const toolRows=topTools.map(([ref,count])=>{
    const x=data.find(t=>t.ref===ref);
-   return `<tr><td class="analysis-tool-ref">${ref}</td><td class="analysis-tool-type">${x?.toolType||"—"}</td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/maxTool)*100}%"></div></div></td></tr>`;
+   return `<tr><td class="analysis-tool-ref">${escapeHTML(ref)}</td><td class="analysis-tool-type">${escapeHTML(x?.toolType||"—")}</td><td class="analysis-count"><strong>${count}</strong><div class="analysis-bar-wrap"><div class="analysis-bar" style="width:${(count/maxTool)*100}%"></div></div></td></tr>`;
   }).join("");
   document.getElementById("analysisContent").innerHTML=`
    <div class="analysis-section">
@@ -631,10 +631,10 @@ function saveMovement(){
  <div class="stock-current">Stock actuel : ${x.qty}</div>
  ${movements.length?`<div class="history-list">${movements.map(m=>`
  <div class="history-item">
-   <div>${m.date}</div>
+   <div>${escapeHTML(m.date||"—")}</div>
    <div class="history-${m.type==="entrée"?"entrée":m.type==="sortie"?"sortie":"correction"}">${escapeHTML(m.type)}</div>
    <div><b>${m.delta>0?"+":""}${m.delta}</b></div>
-   <div>${m.note||"—"}<br><span class="small">${m.oldQty} → ${m.newQty}</span></div>
+   <div>${escapeHTML(m.note||"—")}<br><span class="small">${m.oldQty} → ${m.newQty}</span></div>
  </div>`).join("")}</div>`:"<p class='small'>Aucun mouvement enregistré.</p>"}`;
  document.getElementById("historyModal").classList.add("open");
 }
@@ -655,7 +655,7 @@ function openActivityHistory(){
    const sign=m.type==="entrée"?"+":m.type==="sortie"?"−":"";
    const label=m.type==="entrée"?"Entrée":m.type==="sortie"?"Sortie":"Correction";
    const archived=m.archived?'<span class="badge warn" style="margin-left:8px">Outil archivé</span>':'';
-   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${m.ref}${archived}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
+   return `<div class="activity-item"><div class="activity-main"><div class="activity-ref">${escapeHTML(m.ref)}${archived}</div><div class="activity-meta">${escapeHTML(m.note||m.supplier||"Mouvement de stock")} · ${escapeHTML(m.date||"—")}</div></div><div class="activity-type ${cls}">${label} ${sign}${Math.abs(Number(m.qty??m.delta??0))}</div></div>`;
  }).join(""):'<div class="dash-empty">Aucun mouvement enregistré.</div>';
  document.getElementById("activityHistoryModal").classList.add("open");
 }
@@ -698,20 +698,20 @@ function showDetails(refValue){
  document.getElementById("detailTitle").textContent=x.ref+" — "+x.type;
  document.getElementById("detailContent").innerHTML=`
  <div class="tool-detail-grid">
-   <div class="detail-card detail-card-accent"><div class="small">Catégorie</div><b>${x.type||"—"}</b></div>
-   <div class="detail-card"><div class="small">Type d'outil</div><b>${x.toolType||"—"}</b></div>
-   <div class="detail-card"><div class="small">Fournisseur</div><b>${x.supplier||"—"}</b></div>
+   <div class="detail-card detail-card-accent"><div class="small">Catégorie</div><b>${escapeHTML(x.type||"—")}</b></div>
+   <div class="detail-card"><div class="small">Type d'outil</div><b>${escapeHTML(x.toolType||"—")}</b></div>
+   <div class="detail-card"><div class="small">Fournisseur</div><b>${escapeHTML(x.supplier||"—")}</b></div>
    <div class="detail-card"><div class="small">Référence fournisseur</div><b>${x.supplierRef||"—"}</b>
    ${x.orderUrl?`<a class="order-link" href="${escapeHTML(safeHttpUrl(x.orderUrl))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:""}</div>
-   <div class="detail-card"><div class="small">Dimension</div><b>${x.dimension||"—"}</b></div>
+   <div class="detail-card"><div class="small">Dimension</div><b>${escapeHTML(x.dimension||"—")}</b></div>
    <div class="detail-card"><div class="small">Prix unitaire</div><b>${x.price.toFixed(2)} CHF</b></div>
    <div class="detail-card detail-stock"><div class="small">Stock actuel</div><b>${x.qty}</b><span class="detail-stock-status ${x.qty<=x.min?"is-low":"is-ok"}">${x.qty<=x.min?"Stock à surveiller":"Stock OK"}</span></div>
    <div class="detail-card"><div class="small">Stock de sécurité</div><b>${x.min}</b></div>
    <div class="detail-card"><div class="small">Quantité à commander</div><b>${orderQty||"—"}</b></div>
    <div class="detail-card"><div class="small">Délai d'approvisionnement</div><b>${x.lead!==""&&x.lead!=null?x.lead+" jours":"—"}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Emplacement</div><b>📍 ${x.location||"—"}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Pièces utilisées</div><b>${Array.isArray(x.pieces)&&x.pieces.length?x.pieces.map(p=>`<span class="piece-pill">${p}</span>`).join(" "):"—"}</b></div>
-   <div class="detail-card detail-card-wide"><div class="small">Remarque</div><b>${x.note||"—"}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Emplacement</div><b>📍 ${escapeHTML(x.location||"—")}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Pièces utilisées</div><b>${Array.isArray(x.pieces)&&x.pieces.length?x.pieces.map(p=>`<span class="piece-pill">${escapeHTML(p)}</span>`).join(" "):"—"}</b></div>
+   <div class="detail-card detail-card-wide"><div class="small">Remarque</div><b>${escapeHTML(x.note||"—")}</b></div>
  </div>`;
  document.getElementById("detailsModal").classList.add("open");
 }
