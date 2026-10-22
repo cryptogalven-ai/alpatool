@@ -309,11 +309,23 @@ let deletedToolHistories=JSON.parse(localStorage.getItem("tool-deleted-history-v
 let filter="all";
 data=data.map(x=>({...x,movements:Array.isArray(x.movements)?x.movements:[]}));
 
+function orderComparable(order){
+ const copy={...order};
+ delete copy.updatedAt;
+ return JSON.stringify(copy);
+}
 function save(){
+ const previous=JSON.parse(localStorage.getItem("tool-orders-v1")||"[]");
+ const previousById=new Map(previous.map(o=>[String(o.id),o]));
+ const now=new Date().toISOString();
+ orders=orders.map(o=>{
+  const old=previousById.get(String(o.id));
+  return (!old||orderComparable(old)!==orderComparable(o))?{...o,updatedAt:now}:o;
+ });
  localStorage.setItem("tools-v1",JSON.stringify(data));
  localStorage.setItem("tool-orders-v1",JSON.stringify(orders));
  localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
- if(cloudReady) syncToolsToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+ if(cloudReady) syncAllToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
 }
 function hasActiveOrder(ref){return orders.some(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref))}
 function getActiveOrderStatus(ref){const o=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref));return o?o.status:null}
@@ -487,7 +499,7 @@ function confirmReceiveOrder(){
  const id=pendingReceiveOrderId;const o=orders.find(x=>x.id===id);const value=document.getElementById("realDeliveryDate").value;
  if(!o||o.status!=="Commandée"||!value)return;
  const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;
- for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
+ for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({id:newMovementId(),date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
  o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");save();closeReceiveOrderModal();render();openOrders();
 }
 function show(f,b){filter=f;document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");render()}
@@ -652,6 +664,7 @@ function saveMovement(){
  x.qty+=delta;
  if(!Array.isArray(x.movements))x.movements=[];
  x.movements.unshift({
+  id:newMovementId(),
   date:new Date().toLocaleString("fr-CH"),
   type:type,
   qty:Math.abs(delta),
@@ -876,6 +889,35 @@ let cloudWorkshopId=null;
 let cloudReady=false;
 let cloudSyncRunning=false;
 let cloudSyncQueued=false;
+let cloudDataSyncRunning=false;
+let cloudDataSyncQueued=false;
+let cloudOrdersSyncRunning=false;
+let cloudOrdersSyncQueued=false;
+let cloudUserId=null;
+let cloudRefreshTimer=null;
+const ORDER_META_PREFIX="ALPATOOL_SYNC:";
+
+function stableUuid(value){
+ const input=String(value);
+ const seeds=[2166136261,2246822519,3266489917,668265263];
+ const hex=seeds.map((seed,index)=>{
+  let h=seed>>>0;
+  for(let i=0;i<input.length;i++){
+   h^=(input.charCodeAt(i)+index)&65535;
+   h=Math.imul(h,16777619);
+   h^=h>>>13;
+  }
+  return (h>>>0).toString(16).padStart(8,"0");
+ }).join("").slice(0,32);
+ const chars=hex.split("");
+ chars[12]="5";
+ chars[16]=((parseInt(chars[16],16)&3)|8).toString(16);
+ const h=chars.join("");
+ return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20,32);
+}
+function newMovementId(){
+ return window.crypto&&typeof window.crypto.randomUUID==="function"?window.crypto.randomUUID():stableUuid("movement-new:"+Date.now()+":"+Math.random());
+}
 function setCloudStatus(message,isError=false){
  const el=document.getElementById("cloudStatus");
  if(el){el.textContent=message;el.style.color=isError?"#b42318":"#64748b";}
@@ -886,27 +928,239 @@ function toolToCloud(t){
 function toolFromCloud(t){
  return {ref:t.ref,type:t.category,toolType:t.tool_type,supplier:t.supplier,supplierRef:t.supplier_ref,orderUrl:t.order_url,dimension:t.dimension,price:Number(t.price||0),qty:Number(t.qty||0),min:Number(t.min_qty||0),location:t.location,lead:Number(t.lead_days||0),pieces:Array.isArray(t.pieces)?t.pieces:[],note:t.note||"",movements:[]};
 }
-async function initializeCloudData(user){
- cloudReady=false;
- setCloudStatus("Connexion à la base de données…");
- const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("workshop_id,role").eq("id",user.id).single();
- if(profileError)throw new Error("Profil atelier introuvable : "+profileError.message);
- cloudWorkshopId=profile.workshop_id;
- if(!cloudWorkshopId)throw new Error("Aucun atelier n'est associé à ce compte.");
- const {data:cloudTools,error:toolsError}=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId).is("archived_at",null).order("ref");
- if(toolsError)throw new Error("Lecture des outils impossible : "+toolsError.message);
- if(cloudTools.length){
-  const localMovements=new Map(data.map(t=>[t.ref,Array.isArray(t.movements)?t.movements:[]]));
-  data=cloudTools.map(row=>({...toolFromCloud(row),movements:localMovements.get(row.ref)||[]}));
- }else{
-  // Première connexion : importer les outils de démonstration déjà affichés dans ce navigateur.
-  const {error:importError}=await supabaseClient.from("tools").upsert(data.map(toolToCloud),{onConflict:"workshop_id,ref"});
-  if(importError)throw new Error("Import initial des outils impossible : "+importError.message);
+function dateTextToIso(value){
+ if(!value)return null;
+ const text=String(value).trim();
+ let m=text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(m){
+  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12,0,0);
+  return Number.isNaN(d.getTime())?null:d.toISOString();
  }
- cloudReady=true;
- localStorage.setItem("tools-v1",JSON.stringify(data));
- render();
- setCloudStatus("Stock synchronisé avec Supabase · Atelier privé · "+data.length+" outil(s). Historique des mouvements et commandes encore locaux.");
+ m=text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+ if(!m)return null;
+ const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]),m[4]?Number(m[4]):12,m[5]?Number(m[5]):0,m[6]?Number(m[6]):0);
+ return Number.isNaN(d.getTime())?null:d.toISOString();
+}
+function formatCloudDate(value){
+ if(!value)return "";
+ const text=String(value);
+ const m=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12).toLocaleDateString("fr-CH");
+ const d=new Date(text);
+ return Number.isNaN(d.getTime())?"":d.toLocaleDateString("fr-CH");
+}
+function formatCloudDateTime(value){
+ if(!value)return "";
+ const d=new Date(value);
+ return Number.isNaN(d.getTime())?"":d.toLocaleString("fr-CH");
+}
+function orderStatusToCloud(status){
+ if(status==="Commandée"||status==="commandée")return "commandée";
+ if(status==="Reçue"||status==="reçue")return "reçue";
+ if(status==="Annulée"||status==="annulée")return "annulée";
+ return "à commander";
+}
+function orderStatusFromCloud(status){
+ if(status==="commandée")return "Commandée";
+ if(status==="reçue")return "Reçue";
+ if(status==="annulée")return "Annulée";
+ return "À commander";
+}
+function orderToCloud(order,rowId){
+ const payload={...order,id:String(order.id),items:Array.isArray(order.items)?order.items:[]};
+ const expected=dateTextToIso(order.expectedDelivery);
+ return {
+  id:rowId,
+  workshop_id:cloudWorkshopId,
+  order_number:String(order.id),
+  supplier:order.supplier||"",
+  status:orderStatusToCloud(order.status),
+  ordered_at:dateTextToIso(order.orderedAt),
+  expected_at:expected?expected.slice(0,10):null,
+  received_at:dateTextToIso(order.receivedAt),
+  note:ORDER_META_PREFIX+JSON.stringify(payload),
+  updated_at:order.updatedAt||new Date().toISOString(),
+  created_by:cloudUserId||null
+ };
+}
+function parseOrderMetadata(note){
+ if(!note||!String(note).startsWith(ORDER_META_PREFIX))return null;
+ try{return JSON.parse(String(note).slice(ORDER_META_PREFIX.length));}catch(_){return null;}
+}
+function orderFromCloud(row,cloudItems,toolById){
+ const meta=parseOrderMetadata(row.note)||{};
+ const related=(cloudItems||[]).filter(i=>i.order_id===row.id).map(i=>{
+  const tool=toolById.get(i.tool_id);
+  const ref=tool?tool.ref:"";
+  return {ref:ref,qty:Number(i.quantity||0),unitPrice:Number(i.unit_price||0),total:Number(i.quantity||0)*Number(i.unit_price||0),lead:0};
+ }).filter(i=>i.ref);
+ const items=Array.isArray(meta.items)&&meta.items.length?meta.items:related;
+ return {
+  ...meta,
+  id:String(row.order_number||meta.id||row.id),
+  date:meta.date||formatCloudDate(row.created_at),
+  supplier:row.supplier||meta.supplier||"",
+  items:items,
+  status:orderStatusFromCloud(row.status),
+  total:meta.total!==undefined?Number(meta.total):items.reduce((sum,item)=>sum+Number(item.total!==undefined?item.total:Number(item.qty||0)*Number(item.unitPrice||0)),0),
+  orderedAt:meta.orderedAt||formatCloudDate(row.ordered_at),
+  expectedDelivery:meta.expectedDelivery||formatCloudDate(row.expected_at),
+  receivedAt:meta.receivedAt||formatCloudDate(row.received_at),
+  updatedAt:row.updated_at||meta.updatedAt||row.created_at
+ };
+}
+function assignMovementIds(ref,movements){
+ if(!Array.isArray(movements))return [];
+ const occurrences=new Map();
+ movements.forEach(m=>{
+  const fingerprint=JSON.stringify([m.date||"",m.type||"",Number(m.qty||0),Number(m.delta!==undefined?m.delta:(m.qty||0)),m.oldQty===undefined?null:m.oldQty,m.newQty===undefined?null:m.newQty,m.note||""]);
+  const occurrence=occurrences.get(fingerprint)||0;
+  occurrences.set(fingerprint,occurrence+1);
+  if(!m.id||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(m.id))){
+   m.id=stableUuid("movement:"+cloudWorkshopId+":"+ref+":"+fingerprint+":"+occurrence);
+  }
+ });
+ return movements;
+}
+function localMovementToCloud(ref,m,toolRow){
+ const type=["entrée","sortie","correction"].includes(m.type)?m.type:(Number(m.delta||0)<0?"sortie":"entrée");
+ const delta=Number(m.delta!==undefined?m.delta:(type==="sortie"?-Number(m.qty||0):Number(m.qty||0)));
+ const qty=Math.abs(Number(m.qty!==undefined?m.qty:delta));
+ return {
+  id:m.id,
+  workshop_id:cloudWorkshopId,
+  tool_id:toolRow.id,
+  movement_type:type,
+  quantity:Number.isFinite(qty)?qty:Math.abs(delta),
+  qty_before:Math.max(0,Number(m.oldQty!==undefined?m.oldQty:0)),
+  qty_after:Math.max(0,Number(m.newQty!==undefined?m.newQty:0)),
+  note:m.note||"",
+  created_by:cloudUserId||null,
+  created_at:dateTextToIso(m.date)||new Date().toISOString()
+ };
+}
+function cloudMovementToLocal(row){
+ const qty=Number(row.quantity||0);
+ const before=Number(row.qty_before||0);
+ const after=Number(row.qty_after||0);
+ const delta=row.movement_type==="sortie"?-qty:row.movement_type==="correction"?after-before:qty;
+ return {id:row.id,date:formatCloudDateTime(row.created_at),type:row.movement_type,qty:qty,delta:delta,oldQty:before,newQty:after,note:row.note||""};
+}
+function mergeMovementLists(existing,incoming){
+ const map=new Map();
+ assignMovementIds("",Array.isArray(existing)?existing:[]).forEach(m=>map.set(m.id,m));
+ (incoming||[]).forEach(m=>{
+  const old=map.get(m.id);
+  map.set(m.id,old?{...m,...old}:m);
+ });
+ return Array.from(map.values()).sort((a,b)=>{
+  const da=dateTextToIso(a.date);const db=dateTextToIso(b.date);
+  return (db?Date.parse(db):0)-(da?Date.parse(da):0);
+ });
+}
+async function fetchCloudOrderBundle(){
+ const orderResult=await supabaseClient.from("orders").select("*").eq("workshop_id",cloudWorkshopId).order("created_at",{ascending:true});
+ if(orderResult.error)throw new Error("Lecture des commandes impossible : "+orderResult.error.message);
+ const itemResult=await supabaseClient.from("order_items").select("*").eq("workshop_id",cloudWorkshopId);
+ if(itemResult.error)throw new Error("Lecture des lignes de commande impossible : "+itemResult.error.message);
+ return {orders:orderResult.data||[],items:itemResult.data||[]};
+}
+async function syncOrdersAndMovements(pushLocal=true){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudOrdersSyncRunning){cloudOrdersSyncQueued=cloudOrdersSyncQueued||pushLocal;return;}
+ cloudOrdersSyncRunning=true;
+ try{
+  const toolResult=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId);
+  if(toolResult.error)throw new Error("Lecture des références d'outils impossible : "+toolResult.error.message);
+  const toolRows=toolResult.data||[];
+  const toolByRef=new Map(toolRows.map(t=>[t.ref,t]));
+  const toolById=new Map(toolRows.map(t=>[t.id,t]));
+  const deletedByRef=new Map(deletedToolHistories.map(h=>[h.ref,h]));
+  toolRows.filter(t=>t.archived_at).forEach(t=>{
+   if(!deletedByRef.has(t.ref)){
+    const history={ref:t.ref,supplier:t.supplier||"",toolType:t.tool_type||"",type:t.category||"Courante",dimension:t.dimension||"",deletedAt:formatCloudDateTime(t.archived_at),movements:[]};
+    deletedToolHistories.push(history);deletedByRef.set(t.ref,history);
+   }
+  });
+  let bundle=await fetchCloudOrderBundle();
+  if(pushLocal){
+   const remoteByNumber=new Map(bundle.orders.filter(o=>o.order_number).map(o=>[String(o.order_number),o]));
+   for(const localOrder of orders.slice()){
+    if(!localOrder.updatedAt)localOrder.updatedAt=new Date().toISOString();
+    const existing=remoteByNumber.get(String(localOrder.id));
+    const remoteTime=existing&&existing.updated_at?Date.parse(existing.updated_at):0;
+    const localTime=Date.parse(localOrder.updatedAt)||0;
+    if(existing&&remoteTime>=localTime)continue;
+    const rowId=existing?existing.id:stableUuid("alpatool-order:"+cloudWorkshopId+":"+String(localOrder.id));
+    const orderRow=orderToCloud(localOrder,rowId);
+    const orderUpsert=await supabaseClient.from("orders").upsert(orderRow,{onConflict:"id"});
+    if(orderUpsert.error)throw new Error("Enregistrement de la commande "+localOrder.id+" impossible : "+orderUpsert.error.message);
+    remoteByNumber.set(String(localOrder.id),{...orderRow});
+    const itemRows=(Array.isArray(localOrder.items)?localOrder.items:[]).map(item=>{
+     const tool=toolByRef.get(item.ref);
+     if(!tool)return null;
+     return {id:stableUuid("alpatool-order-item:"+rowId+":"+String(item.ref)),workshop_id:cloudWorkshopId,order_id:rowId,tool_id:tool.id,quantity:Number(item.qty||0),unit_price:Number(item.unitPrice||0)};
+    }).filter(Boolean);
+    if(itemRows.length){
+     const itemUpsert=await supabaseClient.from("order_items").upsert(itemRows,{onConflict:"id"});
+     if(itemUpsert.error)throw new Error("Enregistrement des lignes de commande impossible : "+itemUpsert.error.message);
+    }
+   }
+  }
+
+  const localMovementRows=[];
+  const collectMovements=(ref,movements)=>{
+   if(!Array.isArray(movements))return;
+   assignMovementIds(ref,movements);
+   const tool=toolByRef.get(ref);
+   if(!tool)return;
+   movements.forEach(m=>localMovementRows.push(localMovementToCloud(ref,m,tool)));
+  };
+  data.forEach(t=>collectMovements(t.ref,t.movements));
+  deletedToolHistories.forEach(h=>collectMovements(h.ref,h.movements));
+  if(pushLocal&&localMovementRows.length){
+   const uniqueRows=Array.from(new Map(localMovementRows.map(m=>[m.id,m])).values());
+   const movementUpsert=await supabaseClient.from("stock_movements").upsert(uniqueRows,{onConflict:"id"});
+   if(movementUpsert.error)throw new Error("Synchronisation de l'historique impossible : "+movementUpsert.error.message);
+  }
+
+  bundle=await fetchCloudOrderBundle();
+  const mergedOrders=new Map(orders.map(o=>[String(o.id),o]));
+  bundle.orders.forEach(row=>{
+   const remote=orderFromCloud(row,bundle.items,toolById);
+   const local=mergedOrders.get(String(remote.id));
+   const remoteTime=Date.parse(remote.updatedAt||row.created_at)||0;
+   const localTime=local?Date.parse(local.updatedAt||local.date)||0:0;
+   if(!local||remoteTime>=localTime)mergedOrders.set(String(remote.id),remote);
+  });
+  orders=Array.from(mergedOrders.values()).sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
+
+  const movementResult=await supabaseClient.from("stock_movements").select("*").eq("workshop_id",cloudWorkshopId).order("created_at",{ascending:false});
+  if(movementResult.error)throw new Error("Lecture de l'historique impossible : "+movementResult.error.message);
+  const movementsByRef=new Map();
+  (movementResult.data||[]).forEach(row=>{
+   const tool=toolById.get(row.tool_id);
+   if(!tool)return;
+   if(!movementsByRef.has(tool.ref))movementsByRef.set(tool.ref,[]);
+   movementsByRef.get(tool.ref).push(cloudMovementToLocal(row));
+  });
+  data=data.map(t=>({...t,movements:mergeMovementLists(t.movements,movementsByRef.get(t.ref)||[])}));
+  deletedToolHistories=deletedToolHistories.map(h=>({...h,movements:mergeMovementLists(h.movements,movementsByRef.get(h.ref)||[])}));
+  localStorage.setItem("tools-v1",JSON.stringify(data));
+  localStorage.setItem("tool-orders-v1",JSON.stringify(orders));
+  localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+  render();
+  const ordersModal=document.getElementById("ordersModal");
+  if(ordersModal&&ordersModal.classList.contains("open"))openOrders();
+  setCloudStatus("Stock, commandes et historique synchronisés avec Supabase · "+data.length+" outil(s), "+orders.length+" commande(s).");
+ }finally{
+  cloudOrdersSyncRunning=false;
+  if(cloudOrdersSyncQueued){
+   const shouldPush=cloudOrdersSyncQueued;
+   cloudOrdersSyncQueued=false;
+   setTimeout(()=>syncOrdersAndMovements(shouldPush).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true)),0);
+  }
+ }
 }
 async function syncToolsToCloud(){
  if(!cloudReady||!cloudWorkshopId)return;
@@ -924,13 +1178,71 @@ async function syncToolsToCloud(){
   if(activeRefs.length)query=query.not("ref","in","("+activeRefs.map(v=>'"'+String(v).replace(/"/g,'\\"')+'"').join(",")+")");
   const {error:archiveError}=await query;
   if(archiveError)throw archiveError;
-  setCloudStatus("Stock synchronisé avec Supabase · "+data.length+" outil(s). Historique des mouvements et commandes encore locaux.");
+  setCloudStatus("Stock synchronisé · commandes et historique en cours…");
  }finally{
   cloudSyncRunning=false;
   if(cloudSyncQueued){cloudSyncQueued=false;syncToolsToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));}
  }
 }
-
+async function syncAllToCloud(){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudDataSyncRunning){cloudDataSyncQueued=true;return;}
+ cloudDataSyncRunning=true;
+ try{
+  await syncToolsToCloud();
+  await syncOrdersAndMovements(true);
+ }finally{
+  cloudDataSyncRunning=false;
+  if(cloudDataSyncQueued){
+   cloudDataSyncQueued=false;
+   setTimeout(()=>syncAllToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true)),0);
+  }
+ }
+}
+function startCloudRefresh(){
+ if(cloudRefreshTimer)clearInterval(cloudRefreshTimer);
+ cloudRefreshTimer=setInterval(()=>{
+  if(cloudReady&&!document.hidden)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+ },20000);
+}
+window.addEventListener("focus",()=>{
+ if(cloudReady)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+});
+document.addEventListener("visibilitychange",()=>{
+ if(cloudReady&&!document.hidden)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+});
+async function initializeCloudData(user){
+ cloudReady=false;
+ cloudUserId=user.id;
+ setCloudStatus("Connexion à la base de données…");
+ const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("workshop_id,role").eq("id",user.id).single();
+ if(profileError)throw new Error("Profil atelier introuvable : "+profileError.message);
+ cloudWorkshopId=profile.workshop_id;
+ if(!cloudWorkshopId)throw new Error("Aucun atelier n'est associé à ce compte.");
+ const {data:cloudTools,error:toolsError}=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId).order("ref");
+ if(toolsError)throw new Error("Lecture des outils impossible : "+toolsError.message);
+ const activeCloudTools=(cloudTools||[]).filter(t=>!t.archived_at);
+ if(activeCloudTools.length){
+  const localMovements=new Map(data.map(t=>[t.ref,Array.isArray(t.movements)?t.movements:[]]));
+  data=activeCloudTools.map(row=>({...toolFromCloud(row),movements:localMovements.get(row.ref)||[]}));
+ }else if(!(cloudTools||[]).length){
+  const {error:importError}=await supabaseClient.from("tools").upsert(data.map(toolToCloud),{onConflict:"workshop_id,ref"});
+  if(importError)throw new Error("Import initial des outils impossible : "+importError.message);
+ }
+ const deletedByRef=new Map(deletedToolHistories.map(h=>[h.ref,h]));
+ (cloudTools||[]).filter(t=>t.archived_at).forEach(t=>{
+  if(!deletedByRef.has(t.ref)){
+   const history={ref:t.ref,supplier:t.supplier||"",toolType:t.tool_type||"",type:t.category||"Courante",dimension:t.dimension||"",deletedAt:formatCloudDateTime(t.archived_at),movements:[]};
+   deletedToolHistories.push(history);deletedByRef.set(t.ref,history);
+  }
+ });
+ cloudReady=true;
+ localStorage.setItem("tools-v1",JSON.stringify(data));
+ localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+ render();
+ await syncAllToCloud();
+ startCloudRefresh();
+}
 // Authentification : aucun accès au contenu de l'application sans session valide.
 const authGate=document.getElementById("authGate");
 const authForm=document.getElementById("authForm");
