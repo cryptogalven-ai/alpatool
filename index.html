@@ -1466,4 +1466,117 @@ th,td{padding:11px 9px;border-bottom:1px solid #e1e7ec}
   .dash-panel { padding:19px 20px; }
   .panel { padding:22px; }
 }
+
+/* ALPATOOL — table atelier premium : lisibilité, hiérarchie et actions rapides */
+@media (min-width: 1101px) {
+  .panel:has(#body) {
+    padding:0;
+    overflow:hidden;
+    border:1px solid #dce5ee;
+    border-radius:16px;
+    box-shadow:0 8px 28px rgba(15,35,55,.055);
+    background:#fff;
+  }
+  .panel:has(#body) .toolbar {
+    padding:20px 22px 14px;
+    gap:12px;
+    background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);
+    border-bottom:1px solid #e5ebf2;
+  }
+  #search {
+    min-height:42px;
+    border:1px solid #d7e0e9;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 1px 2px rgba(15,35,55,.025);
+  }
+  #search:focus {
+    outline:0;
+    border-color:#1682a5;
+    box-shadow:0 0 0 3px rgba(22,130,165,.12);
+  }
+  .panel:has(#body) table {
+    border-collapse:separate;
+    border-spacing:0;
+    font-size:13px;
+  }
+  .panel:has(#body) thead th {
+    position:sticky;
+    top:0;
+    z-index:2;
+    white-space:nowrap;
+    padding:13px 12px;
+    background:#f0f5f9;
+    color:#526579;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.055em;
+    border-bottom:1px solid #dce5ee;
+  }
+  .panel:has(#body) tbody td {
+    padding:14px 12px;
+    border-bottom:1px solid #edf1f5;
+    color:#34465a;
+    vertical-align:middle;
+    transition:background .16s ease;
+  }
+  .panel:has(#body) tbody tr:nth-child(even) td { background:#fbfcfe; }
+  .panel:has(#body) tbody tr.tool-row { cursor:pointer; }
+  .panel:has(#body) tbody tr.tool-row:hover td {
+    background:#edf7fb;
+    border-bottom-color:#d7eaf2;
+  }
+  .panel:has(#body) tbody tr.tool-row td:first-child {
+    border-left:3px solid transparent;
+    padding-left:13px;
+  }
+  .panel:has(#body) tbody tr.tool-row:hover td:first-child { border-left-color:#0e7490; }
+  .panel:has(#body) tbody td:first-child b {
+    color:#102d46;
+    font-size:13px;
+    letter-spacing:.01em;
+  }
+  .panel:has(#body) tbody td .small {
+    display:inline-block;
+    margin-top:4px;
+    color:#718195;
+    font-size:11px;
+  }
+  .panel:has(#body) .badge {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 9px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.015em;
+    white-space:nowrap;
+  }
+  .panel:has(#body) .badge.ok { background:#e3f7ed; color:#087747; }
+  .panel:has(#body) .badge.warn { background:#fff2d6; color:#925b00; }
+  .panel:has(#body) .badge.danger { background:#ffe4e6; color:#b42332; }
+  .panel:has(#body) .order-link {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 10px;
+    border-radius:8px;
+    background:#0e7490;
+    color:#fff;
+    font-size:11px;
+    font-weight:750;
+    text-decoration:none;
+    white-space:nowrap;
+    box-shadow:0 2px 5px rgba(14,116,144,.15);
+  }
+  .panel:has(#body) .order-link:hover { background:#155e75; }
+  .panel:has(#body) #orderSummary { margin:0; padding:0 22px 12px; }
+}
+@media (max-width: 1100px) {
+  .panel:has(#body) { overflow-x:auto; }
+  .panel:has(#body) table { min-width:1120px; }
+}
+
 </style>
