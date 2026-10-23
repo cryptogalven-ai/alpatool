@@ -89,6 +89,73 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 #authUserBar button{border:1px solid #ffffff66;border-radius:7px;background:transparent;color:#fff;padding:7px 9px;cursor:pointer}
 #authTestNotice{display:none;margin:0 0 14px;padding:12px 14px;background:#fff7df;border:1px solid #f3df9a;border-radius:9px;color:#76551a;font-size:13px}
 @media(max-width:500px){.auth-card{padding:22px}.auth-actions{flex-direction:column}}
+
+
+/* ALPATOOL — fiche outil : finition premium */
+#detailsModal .modalbox {
+  background:#f4f7fb;
+  border:1px solid #dce5ee;
+  border-radius:18px;
+  box-shadow:0 24px 80px rgba(7,27,45,.24);
+}
+#detailsModal #detailTitle {
+  padding:0 0 16px;
+  margin:0 0 14px;
+  border-bottom:1px solid #dce5ee;
+  font-size:24px;
+  letter-spacing:-.035em;
+}
+#detailsModal .tool-detail-grid { gap:12px; }
+#detailsModal .detail-card {
+  background:#fff;
+  border:1px solid #dce5ee;
+  border-radius:12px;
+  padding:15px 16px;
+  min-height:78px;
+  box-shadow:0 3px 10px rgba(16,45,70,.035);
+  transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+#detailsModal .detail-card:hover {
+  border-color:#bfd3e1;
+  box-shadow:0 6px 16px rgba(16,45,70,.065);
+  transform:translateY(-1px);
+}
+#detailsModal .detail-card-accent { border-left:4px solid #0e7490; }
+#detailsModal .detail-card .small {
+  color:#718195;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.075em;
+}
+#detailsModal .detail-card b {
+  color:#102d46;
+  font-size:14px;
+  overflow-wrap:anywhere;
+}
+#detailsModal .detail-stock b { font-size:28px; letter-spacing:-.04em; }
+#detailsModal .detail-stock-status { padding:5px 9px; font-size:10px; }
+#detailsModal .piece-pill {
+  background:#edf6fa;
+  border-color:#d4e8ef;
+  color:#155e75;
+  padding:5px 9px;
+  font-weight:650;
+}
+#detailsModal .detail-actions {
+  gap:8px;
+  border-top:1px solid #dce5ee;
+  padding-top:16px;
+}
+#detailsModal .detail-actions button {
+  min-height:38px;
+  border-radius:9px;
+  font-weight:750;
+}
+@media(max-width:600px) {
+  #detailsModal #detailTitle { font-size:20px; }
+  #detailsModal .detail-card { min-height:68px; padding:13px; }
+}
+
 </style>
 
 
