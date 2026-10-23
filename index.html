@@ -247,6 +247,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 <div class="modal" id="receiveOrderModal" style="z-index:10000"><div class="modalbox" style="max-width:520px">
 <div class="modal-head"><h2>📦 Réception de la commande</h2><button type="button" class="modal-close" onclick="closeReceiveOrderModal()" aria-label="Fermer">✕</button></div>
 <div id="receiveOrderMessage" style="margin:14px 0;line-height:1.5"></div>
+<div id="receiveOrderItems" style="max-height:40vh;overflow:auto;margin:10px 0"></div>
 <div style="margin:12px 0"><label class="small" for="realDeliveryDate"><b>Date de livraison réelle *</b></label><input id="realDeliveryDate" type="date" style="width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:7px;margin-top:5px"></div>
 <div class="small">Cette date sera enregistrée dans l'historique. Elle pourra ensuite être modifiée depuis la commande reçue.</div>
 <div class="actions"><button type="button" onclick="closeReceiveOrderModal()">Retour</button><button type="button" class="primary" onclick="confirmReceiveOrder()">📦 Confirmer la réception</button></div>
@@ -554,21 +555,40 @@ function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.fin
 function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();openOrders()}
 let pendingReceiveOrderId="";
 function receiveOrder(id){
- const o=orders.find(x=>x.id===id);if(!o)return;
- if(o.status!=="Commandée"){return;}
+ const o=orders.find(x=>x.id===id);if(!o||o.status!=="Commandée")return;
  pendingReceiveOrderId=id;
- const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+ const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
  document.getElementById("realDeliveryDate").value=now.toISOString().slice(0,10);
- document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${o.id}</b> — ${o.items.length} outil(s).<br><br>Indique la date à laquelle la marchandise a réellement été reçue.`;
+ document.getElementById("receiveOrderMessage").innerHTML=`Commande <b>${o.id}</b> — saisis les quantités réellement reçues pour chaque outil.`;
+ document.getElementById("receiveOrderItems").innerHTML=o.items.map((item,index)=>{
+  const ordered=Math.max(0,Number(item.qty)||0),received=Math.max(0,Number(item.receivedQty)||0),remaining=Math.max(0,ordered-received);
+  return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 90px 120px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e5ebf2"><div><b>${item.ref}</b><div class="small">Commandée : ${ordered} · Déjà reçue : ${received} · Reste : ${remaining}</div></div><label class="small" style="margin:0">Reçue maintenant<input id="receiveQty_${index}" type="number" min="0" max="${remaining}" step="1" value="${remaining}" style="width:100%;margin-top:4px" ${remaining===0?"disabled":""}></label><div class="small">Quantité restante : <b>${remaining}</b></div></div>`;
+ }).join("");
  document.getElementById("receiveOrderModal").classList.add("open");
 }
 function closeReceiveOrderModal(){pendingReceiveOrderId="";document.getElementById("receiveOrderModal").classList.remove("open")}
 function confirmReceiveOrder(){
- const id=pendingReceiveOrderId;const o=orders.find(x=>x.id===id);const value=document.getElementById("realDeliveryDate").value;
+ const id=pendingReceiveOrderId,o=orders.find(x=>x.id===id),value=document.getElementById("realDeliveryDate").value;
  if(!o||o.status!=="Commandée"||!value)return;
+ const quantities=[];
+ for(let i=0;i<o.items.length;i++){
+  const item=o.items[i],ordered=Math.max(0,Number(item.qty)||0),already=Math.max(0,Number(item.receivedQty)||0),remaining=Math.max(0,ordered-already);
+  const input=document.getElementById("receiveQty_"+i),qty=Number(input?.value);
+  if(!Number.isInteger(qty)||qty<0||qty>remaining){alert("La quantité reçue pour "+item.ref+" doit être un entier entre 0 et "+remaining+".");input?.focus();return;}
+  quantities.push(qty);
+ }
+ if(!quantities.some(q=>q>0)){alert("Saisis au moins une quantité reçue supérieure à zéro.");return;}
  const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;
- for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({id:newMovementId(),date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
- o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();closeReceiveOrderModal();render();openOrders();
+ const receivedAt=d.toLocaleDateString("fr-CH");
+ for(let i=0;i<o.items.length;i++){
+  const item=o.items[i],qty=quantities[i];if(qty<=0)continue;
+  item.receivedQty=Math.max(0,Number(item.receivedQty)||0)+qty;
+  const tool=data.find(x=>x.ref===item.ref);
+  if(tool){const oldQty=Number(tool.qty)||0;tool.qty=oldQty+qty;tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({id:newMovementId(),date:new Date().toLocaleString("fr-CH"),type:"entrée",qty,delta:qty,oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}
+ }
+ const fullyReceived=o.items.every(item=>Math.max(0,Number(item.receivedQty)||0)>=Math.max(0,Number(item.qty)||0));
+ o.status=fullyReceived?"Reçue":"Commandée";o.receivedAt=receivedAt;o.updatedAt=new Date().toISOString();
+ save();closeReceiveOrderModal();render();openOrders();
 }
 function show(f,b){filter=f;document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");render()}
 function setOrderFilter(b){filter="low";document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");const search=document.getElementById("search");if(search)search.value="";const typeEl=document.getElementById("typeFilter");if(typeEl)typeEl.dataset.value="";const typeLabel=document.getElementById("typeFilterLabel");if(typeLabel)typeLabel.textContent="Tous les types";render();const box=document.getElementById("orderSummary");if(box){box.classList.add("open");box.scrollIntoView({behavior:"smooth",block:"nearest"});}}
