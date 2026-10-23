@@ -75,19 +75,122 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 #modal .tool-form-actions{margin-top:16px;border-top:1px solid #e2e8ef;padding-top:14px}
 #modal .tool-form-section .small{display:block;margin-bottom:5px;color:#51677a;font-weight:650}
 @media(max-width:720px){#modal .tool-form-section{padding:11px}}
+/* Authentification Supabase — version de test */
+#authGate{position:fixed;inset:0;z-index:5000;background:#eef2f6;display:flex;align-items:center;justify-content:center;padding:20px}
+#authGate[hidden]{display:none}
+.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid #dfe6ee;border-radius:16px;padding:28px;box-shadow:0 12px 40px #0b20331a}
+.auth-card h1{margin:0 0 8px;color:#10263b;font-size:24px}.auth-card p{color:#63758a;line-height:1.5;font-size:14px}
+.auth-card label{margin-top:14px;font-size:13px;font-weight:700;color:#34495e}
+.auth-card input{width:100%;margin-top:6px}
+.auth-actions{display:flex;gap:8px;margin-top:18px}.auth-actions button{flex:1;padding:11px 12px;border:0;border-radius:8px;font-weight:700;cursor:pointer}
+#authSubmit{background:#2d7ff9;color:#fff}#authCreate{background:#e9eff6;color:#17324a}
+#authMessage{min-height:22px;margin-top:12px;font-size:13px;overflow-wrap:anywhere}
+#authUserBar{display:none;align-items:center;gap:10px;color:#dce7f0;font-size:12px}
+#authUserBar button{border:1px solid #ffffff66;border-radius:7px;background:transparent;color:#fff;padding:7px 9px;cursor:pointer}
+#authTestNotice{display:none;margin:0 0 14px;padding:12px 14px;background:#fff7df;border:1px solid #f3df9a;border-radius:9px;color:#76551a;font-size:13px}
+@media(max-width:500px){.auth-card{padding:22px}.auth-actions{flex-direction:column}}
+
+
+/* ALPATOOL — fiche outil : finition premium */
+#detailsModal .modalbox {
+  background:#f4f7fb;
+  border:1px solid #dce5ee;
+  border-radius:18px;
+  box-shadow:0 24px 80px rgba(7,27,45,.24);
+}
+#detailsModal #detailTitle {
+  padding:0 0 16px;
+  margin:0 0 14px;
+  border-bottom:1px solid #dce5ee;
+  font-size:24px;
+  letter-spacing:-.035em;
+}
+#detailsModal .tool-detail-grid { gap:12px; }
+#detailsModal .detail-card {
+  background:#fff;
+  border:1px solid #dce5ee;
+  border-radius:12px;
+  padding:15px 16px;
+  min-height:78px;
+  box-shadow:0 3px 10px rgba(16,45,70,.035);
+  transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+#detailsModal .detail-card:hover {
+  border-color:#bfd3e1;
+  box-shadow:0 6px 16px rgba(16,45,70,.065);
+  transform:translateY(-1px);
+}
+#detailsModal .detail-card-accent { border-left:4px solid #0e7490; }
+#detailsModal .detail-card .small {
+  color:#718195;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.075em;
+}
+#detailsModal .detail-card b {
+  color:#102d46;
+  font-size:14px;
+  overflow-wrap:anywhere;
+}
+#detailsModal .detail-stock b { font-size:28px; letter-spacing:-.04em; }
+#detailsModal .detail-stock-status { padding:5px 9px; font-size:10px; }
+#detailsModal .piece-pill {
+  background:#edf6fa;
+  border-color:#d4e8ef;
+  color:#155e75;
+  padding:5px 9px;
+  font-weight:650;
+}
+#detailsModal .detail-actions {
+  gap:8px;
+  border-top:1px solid #dce5ee;
+  padding-top:16px;
+}
+#detailsModal .detail-actions button {
+  min-height:38px;
+  border-radius:9px;
+  font-weight:750;
+}
+@media(max-width:600px) {
+  #detailsModal #detailTitle { font-size:20px; }
+  #detailsModal .detail-card { min-height:68px; padding:13px; }
+}
+
 </style>
+
 
 
 </head>
 <body>
+
+<div id="authGate">
+  <form class="auth-card" id="authForm">
+    <div class="brand" style="margin-bottom:22px"><div class="brand-mark" style="background:#0b2237;border-radius:8px"><span></span></div><div class="brand-text"><div class="brand-name" style="color:#10263b">ALPATOOL</div><div class="brand-sub" style="color:#64748b">CONNEXION SÉCURISÉE</div></div></div>
+    <h1>Connexion à ALPATOOL</h1>
+    <p>Connecte-toi avec ton compte. Lors de la création d’un compte, un atelier privé sera automatiquement créé pour toi.</p>
+    <label for="authWorkshop">Nom de l’atelier (nouveau compte)</label>
+    <input id="authWorkshop" type="text" maxlength="160" autocomplete="organization" placeholder="Ex. : Atelier mécanique">
+    <label for="authEmail">Adresse e-mail</label>
+    <input id="authEmail" type="email" autocomplete="email" required placeholder="nom@entreprise.ch">
+    <label for="authPassword">Mot de passe</label>
+    <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="8 caractères minimum">
+    <div class="auth-actions"><button id="authSubmit" type="submit">Se connecter</button><button id="authCreate" type="button">Créer un compte</button></div>
+    <div id="authMessage" role="status" aria-live="polite"></div>
+  </form>
+</div>
+
 <header>
 <div class="brand">
   <div class="brand-mark"><span></span></div>
   <div class="brand-text"><div class="brand-name">ALPATOOL</div><div class="brand-sub">SWISS TOOL MANAGEMENT</div></div>
 </div>
 <div class="header-right"><span class="header-pill">ATELIER</span><span>Precision · Control · Production</span></div>
+<div id="authUserBar" style="display:none"></div>
 </header>
+<div id="authTestNotice">Mode test : les outils et quantités sont synchronisés avec Supabase pour cet atelier. L’historique détaillé des mouvements et les commandes restent locaux. Version de test uniquement.</div>
+<div id="cloudStatus" role="status" style="max-width:1320px;margin:0 auto;padding:0 20px;font-size:12px;color:#64748b"></div>
 <div class="wrap">
+<div class="dashboard-intro"><div><div class="dashboard-eyebrow">PILOTAGE DE L’ATELIER</div><h1>Vue d’ensemble</h1><p>Le stock, les alertes et les derniers mouvements en un coup d’œil.</p></div><div class="dashboard-live"><span class="dashboard-live-dot"></span> Tableau de bord</div></div>
 <div class="cards">
 <div class="card"><div class="label">Outils en stock</div><div class="value" id="count">0</div></div>
 <div class="card"><div class="label">Outils spéciaux</div><div class="value" id="special">0</div></div>
@@ -253,7 +356,11 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 </div>
 <div class="actions tool-form-actions"><button onclick="closeModal()">Annuler</button><button class="primary" id="saveToolButton" onclick="add()">Enregistrer l'outil</button></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://uotkyxkyvdtyhpdabkjz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_6_Vlfr2BK_XlT2yp-L64BA_CTQP_9J-";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const seed=[
 {ref:"FS-024",type:"Spéciale",toolType:"Fraise en bout",supplier:"Fraisa",supplierRef:"123456",dimension:"Ø8 × 60 mm",price:85,qty:2,min:1,location:"Poste FAO / tiroir 3",lead:42,pieces:"P-12548, P-12874, P-13201",note:"Outil spécial"},
 {ref:"FS-031",type:"Spéciale",toolType:"Fraise en bout",supplier:"Fournisseur X",supplierRef:"SX-882",dimension:"Ø6 × 50 mm",price:240,qty:1,min:1,location:"Poste FAO / tiroir 4",lead:56,pieces:"P-14020",note:"Critique"},
@@ -270,7 +377,24 @@ let deletedToolHistories=JSON.parse(localStorage.getItem("tool-deleted-history-v
 let filter="all";
 data=data.map(x=>({...x,movements:Array.isArray(x.movements)?x.movements:[]}));
 
-function save(){localStorage.setItem("tools-v1",JSON.stringify(data));localStorage.setItem("tool-orders-v1",JSON.stringify(orders));localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories))}
+function orderComparable(order){
+ const copy={...order};
+ delete copy.updatedAt;
+ return JSON.stringify(copy);
+}
+function save(){
+ const previous=JSON.parse(localStorage.getItem("tool-orders-v1")||"[]");
+ const previousById=new Map(previous.map(o=>[String(o.id),o]));
+ const now=new Date().toISOString();
+ orders=orders.map(o=>{
+  const old=previousById.get(String(o.id));
+  return (!old||orderComparable(old)!==orderComparable(o))?{...o,updatedAt:now}:o;
+ });
+ localStorage.setItem("tools-v1",JSON.stringify(data));
+ localStorage.setItem("tool-orders-v1",JSON.stringify(orders));
+ localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+ if(cloudReady) syncAllToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+}
 function hasActiveOrder(ref){return orders.some(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref))}
 function getActiveOrderStatus(ref){const o=orders.find(o=>(o.status==="À commander"||o.status==="Commandée")&&Array.isArray(o.items)&&o.items.some(i=>i.ref===ref));return o?o.status:null}
 function render(){
@@ -326,6 +450,7 @@ function renderOrderSummary(){
  if(!box)return;
  if(filter!=="low"){box.classList.remove("open");box.innerHTML="";return}
  const items=data.filter(x=>x.qty<=x.min&&!hasActiveOrder(x.ref));
+ const pendingOrders=orders.filter(o=>o.status==="À commander");
  const totalQty=items.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty),0);
  const totalCost=items.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty)*Number(x.price||0),0);
  const groups={};
@@ -333,10 +458,11 @@ function renderOrderSummary(){
  const supplierBlocks=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([supplier,list])=>{
    const supplierQty=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty),0);
    const supplierCost=list.reduce((sum,x)=>sum+Math.max(1,x.min-x.qty)*Number(x.price||0),0);
-   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${supplier}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="createOrderForSupplier(${JSON.stringify(supplier).replace(/\"/g,'&quot;')})">📋 Créer la commande</button></div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
+   return `<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">🏭 ${supplier}</div><div class="small">${list.length} outil(s) · ${supplierQty} pièce(s) · ${supplierCost.toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="createOrderForSupplier(decodeURIComponent('${encodeURIComponent(supplier)}'))">📋 Créer la commande</button></div><div style="margin-top:10px">${list.map(x=>{const q=Math.max(1,x.min-x.qty);const link=x.orderUrl?`<a class="order-link" href="${x.orderUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation(); window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">🛒 Commander</a>`:`<span class="small">⚠️ Lien manquant</span>`;return `<div class="production-tool"><div class="production-tool-main"><div><b>${x.ref}</b> — ${x.toolType||"Autre"}<div class="production-meta">Stock : ${x.qty} · Sécurité : ${x.min} · Prix : ${Number(x.price||0).toFixed(2)} CHF · Délai : ${x.lead!==""&&x.lead!=null?x.lead+" j":"—"}</div></div><div><b>Commander ${q}</b></div></div><div class="production-actions">${link}</div></div>`}).join("")}</div></div>`;
  }).join("");
+ const pendingBlocks=pendingOrders.map(o=>`<div class="order-summary-card" style="margin-top:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">⏳ ${o.id} — ${o.supplier}</div><div class="small">En attente de confirmation · ${o.items.length} outil(s) · ${Number(o.total||0).toFixed(2)} CHF</div></div><button type="button" class="primary" onclick="markOrderOrdered('${o.id}')">✓ Commande passée</button></div><div style="margin-top:8px">${o.items.map(i=>`<div class="production-tool"><b>${i.ref}</b> — Quantité : ${i.qty}</div>`).join("")}</div></div>`).join("");
  box.classList.add("open");
- box.innerHTML=`<div class="order-summary-head"><div><div class="order-summary-title">🛒 Préparation des commandes</div><div class="small">Les besoins sont regroupés par fournisseur. Les quantités permettent de revenir au stock de sécurité.</div></div><div class="order-summary-grid"><div class="order-summary-card"><span class="small">Outils concernés</span><b>${items.length}</b></div><div class="order-summary-card"><span class="small">Fournisseurs</span><b>${Object.keys(groups).length}</b></div><div class="order-summary-card"><span class="small">Coût estimé</span><b>${totalCost.toFixed(2)} CHF</b></div></div></div>${supplierBlocks}`;
+ box.innerHTML=`<div class="order-summary-head"><div><div class="order-summary-title">🛒 Préparation des commandes</div><div class="small">Les besoins sont regroupés par fournisseur. Confirme ici lorsqu’une commande en attente a réellement été passée.</div></div><div class="order-summary-grid"><div class="order-summary-card"><span class="small">Outils à préparer</span><b>${items.length}</b></div><div class="order-summary-card"><span class="small">Fournisseurs à préparer</span><b>${Object.keys(groups).length}</b></div><div class="order-summary-card"><span class="small">Coût estimé à préparer</span><b>${totalCost.toFixed(2)} CHF</b></div></div></div>${pendingOrders.length?`<div style="margin-top:18px"><div class="order-summary-title">Commandes créées — à confirmer</div><div class="small">Ces commandes sont déjà enregistrées et ne seront pas recréées. Confirme leur envoi au fournisseur avec « Commande passée ».</div>${pendingBlocks}</div>`:""}${supplierBlocks||(!pendingOrders.length?'<div class="analysis-empty" style="margin-top:12px">Aucun outil à commander actuellement.</div>':"")}`;
 }
 let pendingOrderSupplier="";
 let pendingOrderCandidates=[];
@@ -364,7 +490,7 @@ function confirmCreateOrder(){
    if(!Number.isInteger(q)||q<=0){alert("La quantité commandée pour "+x.ref+" doit être un nombre entier supérieur à 0.");input?.focus();return;}
    items.push({ref:x.ref,qty:q,unitPrice:Number(x.price||0),total:q*Number(x.price||0),lead:Number(x.lead||0)});
  }
- const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0)};
+ const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0),updatedAt:new Date().toISOString()};
  orders.unshift(order);save();closeCreateOrder();openOrders();
 }
 function formatDateForInput(dateText){
@@ -379,7 +505,7 @@ function setDeliveryDate(id,value){
  const d=new Date(value+"T12:00:00");
  if(Number.isNaN(d.getTime())) return;
  o.expectedDelivery=d.toLocaleDateString("fr-CH");
- o.simulatedDelivery=true;
+ o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();
  save(); openOrders();
 }
 function deliverySimulation(id,days){
@@ -387,7 +513,7 @@ function deliverySimulation(id,days){
  if(!o || o.status!=="Commandée") return;
  const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+Number(days));
  o.expectedDelivery=d.toLocaleDateString("fr-CH");
- o.simulatedDelivery=true;
+ o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();
  save(); openOrders();
 }
 function getDeliveryInfo(o){
@@ -415,17 +541,17 @@ function renderOrderHistory(query){
  const filtered=orders.filter(o=>!q || String(o.id).toLowerCase().includes(q) || String(o.supplier||"").toLowerCase().includes(q) || o.items.some(i=>String(i.ref).toLowerCase().includes(q)));
  if(!filtered.length){box.innerHTML='<div class="analysis-empty">Aucune commande ne correspond à la recherche.</div>';return;}
  filtered.sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
- box.innerHTML=filtered.map(o=>{const delivery=getDeliveryInfo(o);const statusClass=o.status==="Reçue"?"ok":o.status==="Commandée"?"warn":o.status==="Annulée"?"danger":"";let actions="";if(o.status==="À commander"){actions=`<button type="button" class="primary" onclick="markOrderOrdered('${o.id}')">Marquer commandée</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Commandée"){actions=`<button type="button" class="primary" onclick="receiveOrder('${o.id}')">📦 Marquer reçue</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Reçue"){actions=`<span class="small">Stock mis à jour</span>`;}else{actions=`<span class="small">Commande annulée</span>`;}const sim=o.status==="Commandée"?`<details style="margin-top:10px;padding:8px 10px;background:#f7f9fb;border:1px dashed #cbd5e1;border-radius:8px"><summary style="cursor:pointer;font-weight:700">🧪 Mode test livraison</summary><div class="small" style="margin:8px 0">Uniquement pour tester les différents états.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px"><button type="button" onclick="deliverySimulation('${o.id}',10)">+10 jours</button><button type="button" onclick="deliverySimulation('${o.id}',3)">+3 jours</button><button type="button" onclick="deliverySimulation('${o.id}',1)">Demain</button><button type="button" onclick="deliverySimulation('${o.id}',0)">Aujourd'hui</button><button type="button" onclick="deliverySimulation('${o.id}',-1)">En retard</button></div></details>`:"";return `<div class="order-summary-card" style="margin-bottom:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">${o.id} — ${o.supplier}</div><div class="small">Créée le ${o.date} · ${o.items.length} outil(s) · ${Number(o.total).toFixed(2)} CHF</div>${o.status==="Commandée"?`<div style="margin-top:5px;font-weight:700">📅 Livraison prévue : ${o.expectedDelivery||"—"}${o.leadDays!=null?` <span class="small">(${o.leadDays} jour(s))</span>`:""}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="small" for="expectedDate_${o.id}">Modifier la date prévue :</label><input type="date" id="expectedDate_${o.id}" value="${formatDateForInput(o.expectedDelivery)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setDeliveryDate('${o.id}',document.getElementById('expectedDate_${o.id}').value)">✏️ Modifier</button></div>${delivery?`<div style="margin-top:5px"><span class="badge ${delivery.cls}">${delivery.label}</span></div>`:""}`:""}${o.status==="Reçue"&&o.receivedAt?`<div style="margin-top:5px;font-weight:700">📦 Date de livraison réelle : ${o.receivedAt}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px"><label class="small" for="receivedDate_${o.id}">Modifier la date réelle :</label><input type="date" id="receivedDate_${o.id}" value="${formatDateForInput(o.receivedAt)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setReceivedDate('${o.id}',document.getElementById('receivedDate_${o.id}').value)">✏️ Modifier</button></div>`:""}${o.status==="Annulée"&&o.cancelledAt?`<div style="margin-top:5px">✖ Annulée le ${o.cancelledAt}</div>`:""}</div><div><span class="badge ${statusClass}">${o.status}</span></div></div><table style="margin-top:10px"><thead><tr><th>Référence</th><th>Quantité</th><th>Prix</th><th>Total</th></tr></thead><tbody>${o.items.map(i=>`<tr><td><b>${i.ref}</b></td><td>${i.qty}</td><td>${Number(i.unitPrice).toFixed(2)} CHF</td><td>${Number(i.total).toFixed(2)} CHF</td></tr>`).join("")}</tbody></table>${sim}<div class="actions">${actions}</div></div>`}).join("");
+ box.innerHTML=filtered.map(o=>{const delivery=getDeliveryInfo(o);const statusClass=o.status==="Reçue"?"ok":o.status==="Commandée"?"warn":o.status==="Annulée"?"danger":"";let actions="";if(o.status==="À commander"){actions=`<button type="button" class="primary" onclick="markOrderOrdered('${o.id}')">Commande passée</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Commandée"){actions=`<button type="button" class="primary" onclick="receiveOrder('${o.id}')">📦 Marquer reçue</button><button type="button" data-cancel-order="${o.id}" style="background:#dc2626;color:#fff">Annuler</button>`;}else if(o.status==="Reçue"){actions=`<span class="small">Stock mis à jour</span>`;}else{actions=`<span class="small">Commande annulée</span>`;}return `<div class="order-summary-card" style="margin-bottom:12px"><div class="order-summary-head"><div><div class="order-summary-title" style="font-size:16px">${o.id} — ${o.supplier}</div><div class="small">Créée le ${o.date} · ${o.items.length} outil(s) · ${Number(o.total).toFixed(2)} CHF</div>${o.status==="Commandée"?`<div style="margin-top:5px;font-weight:700">📅 Livraison prévue : ${o.expectedDelivery||"—"}${o.leadDays!=null?` <span class="small">(${o.leadDays} jour(s))</span>`:""}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap"><label class="small" for="expectedDate_${o.id}">Modifier la date prévue :</label><input type="date" id="expectedDate_${o.id}" value="${formatDateForInput(o.expectedDelivery)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setDeliveryDate('${o.id}',document.getElementById('expectedDate_${o.id}').value)">✏️ Modifier</button></div>${delivery?`<div style="margin-top:5px"><span class="badge ${delivery.cls}">${delivery.label}</span></div>`:""}`:""}${o.status==="Reçue"&&o.receivedAt?`<div style="margin-top:5px;font-weight:700">📦 Date de livraison réelle : ${o.receivedAt}</div><div style="display:flex;gap:6px;align-items:center;margin-top:6px"><label class="small" for="receivedDate_${o.id}">Modifier la date réelle :</label><input type="date" id="receivedDate_${o.id}" value="${formatDateForInput(o.receivedAt)}" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px"><button type="button" class="primary" onclick="setReceivedDate('${o.id}',document.getElementById('receivedDate_${o.id}').value)">✏️ Modifier</button></div>`:""}${o.status==="Annulée"&&o.cancelledAt?`<div style="margin-top:5px">✖ Annulée le ${o.cancelledAt}</div>`:""}</div><div><span class="badge ${statusClass}">${o.status}</span></div></div><table style="margin-top:10px"><thead><tr><th>Référence</th><th>Quantité</th><th>Prix</th><th>Total</th></tr></thead><tbody>${o.items.map(i=>`<tr><td><b>${i.ref}</b></td><td>${i.qty}</td><td>${Number(i.unitPrice).toFixed(2)} CHF</td><td>${Number(i.total).toFixed(2)} CHF</td></tr>`).join("")}</tbody></table><div class="actions">${actions}</div></div>`}).join("");
  document.querySelectorAll("[data-cancel-order]").forEach(btn=>{btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();cancelOrder(this.dataset.cancelOrder);});});
 }
 
 function closeOrders(){document.getElementById("ordersModal").classList.remove("open")}
-function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;save();openOrders()}
+function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;o.updatedAt=new Date().toISOString();save();render();openOrders()}
 let pendingCancelOrderId="";
 function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${o.id}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
 function closeCancelOrder(){pendingCancelOrderId="";document.getElementById("cancelOrderModal").classList.remove("open")}
-function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");save();closeCancelOrder();openOrders()}
-function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");save();openOrders()}
+function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();closeCancelOrder();openOrders()}
+function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();openOrders()}
 let pendingReceiveOrderId="";
 function receiveOrder(id){
  const o=orders.find(x=>x.id===id);if(!o)return;
@@ -441,8 +567,8 @@ function confirmReceiveOrder(){
  const id=pendingReceiveOrderId;const o=orders.find(x=>x.id===id);const value=document.getElementById("realDeliveryDate").value;
  if(!o||o.status!=="Commandée"||!value)return;
  const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;
- for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
- o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");save();closeReceiveOrderModal();render();openOrders();
+ for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({id:newMovementId(),date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
+ o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();closeReceiveOrderModal();render();openOrders();
 }
 function show(f,b){filter=f;document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");render()}
 function setOrderFilter(b){filter="low";document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");const search=document.getElementById("search");if(search)search.value="";const typeEl=document.getElementById("typeFilter");if(typeEl)typeEl.dataset.value="";const typeLabel=document.getElementById("typeFilterLabel");if(typeLabel)typeLabel.textContent="Tous les types";render();const box=document.getElementById("orderSummary");if(box){box.classList.add("open");box.scrollIntoView({behavior:"smooth",block:"nearest"});}}
@@ -606,6 +732,7 @@ function saveMovement(){
  x.qty+=delta;
  if(!Array.isArray(x.movements))x.movements=[];
  x.movements.unshift({
+  id:newMovementId(),
   date:new Date().toLocaleString("fr-CH"),
   type:type,
   qty:Math.abs(delta),
@@ -824,10 +951,488 @@ function add(){
  }else data.push(x);
  save();closeModal();document.querySelectorAll("#modal input").forEach(i=>i.value="");resetPieces();resetFormMode();render();
 }
+
+// Synchronisation Supabase des outils et mouvements de stock (atelier isolé par RLS).
+let cloudWorkshopId=null;
+let cloudReady=false;
+let cloudSyncRunning=false;
+let cloudSyncQueued=false;
+let cloudDataSyncRunning=false;
+let cloudDataSyncQueued=false;
+let cloudOrdersSyncRunning=false;
+let cloudOrdersSyncQueued=false;
+let cloudUserId=null;
+let cloudRefreshTimer=null;
+const ORDER_META_PREFIX="ALPATOOL_SYNC:";
+
+function stableUuid(value){
+ const input=String(value);
+ const seeds=[2166136261,2246822519,3266489917,668265263];
+ const hex=seeds.map((seed,index)=>{
+  let h=seed>>>0;
+  for(let i=0;i<input.length;i++){
+   h^=(input.charCodeAt(i)+index)&65535;
+   h=Math.imul(h,16777619);
+   h^=h>>>13;
+  }
+  return (h>>>0).toString(16).padStart(8,"0");
+ }).join("").slice(0,32);
+ const chars=hex.split("");
+ chars[12]="5";
+ chars[16]=((parseInt(chars[16],16)&3)|8).toString(16);
+ const h=chars.join("");
+ return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20,32);
+}
+function newMovementId(){
+ return window.crypto&&typeof window.crypto.randomUUID==="function"?window.crypto.randomUUID():stableUuid("movement-new:"+Date.now()+":"+Math.random());
+}
+function setCloudStatus(message,isError=false){
+ const el=document.getElementById("cloudStatus");
+ if(el){el.textContent=message;el.style.color=isError?"#b42318":"#64748b";}
+}
+function toolToCloud(t){
+ return {workshop_id:cloudWorkshopId,ref:t.ref,category:t.type==="Spéciale"?"Spéciale":"Courante",tool_type:t.toolType||"autre",supplier:t.supplier||"",supplier_ref:t.supplierRef||"",order_url:t.orderUrl||"",dimension:t.dimension||"",price:Number(t.price||0),qty:Number(t.qty||0),min_qty:Number(t.min||0),location:t.location||"",lead_days:Number(t.lead||0),pieces:Array.isArray(t.pieces)?t.pieces:(t.pieces||"").split(",").map(v=>v.trim()).filter(Boolean),note:t.note||"",archived_at:null};
+}
+function toolFromCloud(t){
+ return {ref:t.ref,type:t.category,toolType:t.tool_type,supplier:t.supplier,supplierRef:t.supplier_ref,orderUrl:t.order_url,dimension:t.dimension,price:Number(t.price||0),qty:Number(t.qty||0),min:Number(t.min_qty||0),location:t.location,lead:Number(t.lead_days||0),pieces:Array.isArray(t.pieces)?t.pieces:[],note:t.note||"",movements:[]};
+}
+function dateTextToIso(value){
+ if(!value)return null;
+ const text=String(value).trim();
+ let m=text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(m){
+  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12,0,0);
+  return Number.isNaN(d.getTime())?null:d.toISOString();
+ }
+ m=text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+ if(!m)return null;
+ const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]),m[4]?Number(m[4]):12,m[5]?Number(m[5]):0,m[6]?Number(m[6]):0);
+ return Number.isNaN(d.getTime())?null:d.toISOString();
+}
+function formatCloudDate(value){
+ if(!value)return "";
+ const text=String(value);
+ const m=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+ if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12).toLocaleDateString("fr-CH");
+ const d=new Date(text);
+ return Number.isNaN(d.getTime())?"":d.toLocaleDateString("fr-CH");
+}
+function formatCloudDateTime(value){
+ if(!value)return "";
+ const d=new Date(value);
+ return Number.isNaN(d.getTime())?"":d.toLocaleString("fr-CH");
+}
+function orderStatusToCloud(status){
+ if(status==="Commandée"||status==="commandée")return "commandée";
+ if(status==="Reçue"||status==="reçue")return "reçue";
+ if(status==="Annulée"||status==="annulée")return "annulée";
+ return "à commander";
+}
+function orderStatusFromCloud(status){
+ if(status==="commandée")return "Commandée";
+ if(status==="reçue")return "Reçue";
+ if(status==="annulée")return "Annulée";
+ return "À commander";
+}
+function orderToCloud(order,rowId){
+ const payload={...order,id:String(order.id),items:Array.isArray(order.items)?order.items:[]};
+ const expected=dateTextToIso(order.expectedDelivery);
+ return {
+  id:rowId,
+  workshop_id:cloudWorkshopId,
+  order_number:String(order.id),
+  supplier:order.supplier||"",
+  status:orderStatusToCloud(order.status),
+  ordered_at:dateTextToIso(order.orderedAt),
+  expected_at:expected?expected.slice(0,10):null,
+  received_at:dateTextToIso(order.receivedAt),
+  note:ORDER_META_PREFIX+JSON.stringify(payload),
+  updated_at:order.updatedAt||new Date().toISOString(),
+  created_by:cloudUserId||null
+ };
+}
+function parseOrderMetadata(note){
+ if(!note||!String(note).startsWith(ORDER_META_PREFIX))return null;
+ try{return JSON.parse(String(note).slice(ORDER_META_PREFIX.length));}catch(_){return null;}
+}
+function orderFromCloud(row,cloudItems,toolById){
+ const meta=parseOrderMetadata(row.note)||{};
+ const related=(cloudItems||[]).filter(i=>i.order_id===row.id).map(i=>{
+  const tool=toolById.get(i.tool_id);
+  const ref=tool?tool.ref:"";
+  return {ref:ref,qty:Number(i.quantity||0),unitPrice:Number(i.unit_price||0),total:Number(i.quantity||0)*Number(i.unit_price||0),lead:0};
+ }).filter(i=>i.ref);
+ const items=Array.isArray(meta.items)&&meta.items.length?meta.items:related;
+ return {
+  ...meta,
+  id:String(row.order_number||meta.id||row.id),
+  date:meta.date||formatCloudDate(row.created_at),
+  supplier:row.supplier||meta.supplier||"",
+  items:items,
+  status:orderStatusFromCloud(row.status),
+  total:meta.total!==undefined?Number(meta.total):items.reduce((sum,item)=>sum+Number(item.total!==undefined?item.total:Number(item.qty||0)*Number(item.unitPrice||0)),0),
+  orderedAt:meta.orderedAt||formatCloudDate(row.ordered_at),
+  expectedDelivery:meta.expectedDelivery||formatCloudDate(row.expected_at),
+  receivedAt:meta.receivedAt||formatCloudDate(row.received_at),
+  updatedAt:row.updated_at||meta.updatedAt||row.created_at
+ };
+}
+function assignMovementIds(ref,movements){
+ if(!Array.isArray(movements))return [];
+ const occurrences=new Map();
+ movements.forEach(m=>{
+  const fingerprint=JSON.stringify([m.date||"",m.type||"",Number(m.qty||0),Number(m.delta!==undefined?m.delta:(m.qty||0)),m.oldQty===undefined?null:m.oldQty,m.newQty===undefined?null:m.newQty,m.note||""]);
+  const occurrence=occurrences.get(fingerprint)||0;
+  occurrences.set(fingerprint,occurrence+1);
+  if(!m.id||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(m.id))){
+   m.id=stableUuid("movement:"+cloudWorkshopId+":"+ref+":"+fingerprint+":"+occurrence);
+  }
+ });
+ return movements;
+}
+function localMovementToCloud(ref,m,toolRow){
+ const type=["entrée","sortie","correction"].includes(m.type)?m.type:(Number(m.delta||0)<0?"sortie":"entrée");
+ const delta=Number(m.delta!==undefined?m.delta:(type==="sortie"?-Number(m.qty||0):Number(m.qty||0)));
+ const qty=Math.abs(Number(m.qty!==undefined?m.qty:delta));
+ return {
+  id:m.id,
+  workshop_id:cloudWorkshopId,
+  tool_id:toolRow.id,
+  movement_type:type,
+  quantity:Number.isFinite(qty)?qty:Math.abs(delta),
+  qty_before:Math.max(0,Number(m.oldQty!==undefined?m.oldQty:0)),
+  qty_after:Math.max(0,Number(m.newQty!==undefined?m.newQty:0)),
+  note:m.note||"",
+  created_by:null,
+  created_at:dateTextToIso(m.date)||new Date().toISOString()
+ };
+}
+function cloudMovementToLocal(row){
+ const qty=Number(row.quantity||0);
+ const before=Number(row.qty_before||0);
+ const after=Number(row.qty_after||0);
+ const delta=row.movement_type==="sortie"?-qty:row.movement_type==="correction"?after-before:qty;
+ return {id:row.id,date:formatCloudDateTime(row.created_at),type:row.movement_type,qty:qty,delta:delta,oldQty:before,newQty:after,note:row.note||""};
+}
+function mergeMovementLists(existing,incoming){
+ const map=new Map();
+ assignMovementIds("",Array.isArray(existing)?existing:[]).forEach(m=>map.set(m.id,m));
+ (incoming||[]).forEach(m=>{
+  const old=map.get(m.id);
+  map.set(m.id,old?{...m,...old}:m);
+ });
+ return Array.from(map.values()).sort((a,b)=>{
+  const da=dateTextToIso(a.date);const db=dateTextToIso(b.date);
+  return (db?Date.parse(db):0)-(da?Date.parse(da):0);
+ });
+}
+async function fetchCloudOrderBundle(){
+ const orderResult=await supabaseClient.from("orders").select("*").eq("workshop_id",cloudWorkshopId).order("created_at",{ascending:true});
+ if(orderResult.error)throw new Error("Lecture des commandes impossible : "+orderResult.error.message);
+ const itemResult=await supabaseClient.from("order_items").select("*").eq("workshop_id",cloudWorkshopId);
+ if(itemResult.error)throw new Error("Lecture des lignes de commande impossible : "+itemResult.error.message);
+ return {orders:orderResult.data||[],items:itemResult.data||[]};
+}
+async function syncOrdersAndMovements(pushLocal=true){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudOrdersSyncRunning){cloudOrdersSyncQueued=cloudOrdersSyncQueued||pushLocal;return;}
+ cloudOrdersSyncRunning=true;
+ try{
+  const toolResult=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId);
+  if(toolResult.error)throw new Error("Lecture des références d'outils impossible : "+toolResult.error.message);
+  const toolRows=toolResult.data||[];
+  const toolByRef=new Map(toolRows.map(t=>[t.ref,t]));
+  const toolById=new Map(toolRows.map(t=>[t.id,t]));
+  const deletedByRef=new Map(deletedToolHistories.map(h=>[h.ref,h]));
+  toolRows.filter(t=>t.archived_at).forEach(t=>{
+   if(!deletedByRef.has(t.ref)){
+    const history={ref:t.ref,supplier:t.supplier||"",toolType:t.tool_type||"",type:t.category||"Courante",dimension:t.dimension||"",deletedAt:formatCloudDateTime(t.archived_at),movements:[]};
+    deletedToolHistories.push(history);deletedByRef.set(t.ref,history);
+   }
+  });
+  let bundle=await fetchCloudOrderBundle();
+  if(pushLocal){
+   const remoteByNumber=new Map(bundle.orders.filter(o=>o.order_number).map(o=>[String(o.order_number),o]));
+   for(const localOrder of orders.slice()){
+    const existing=remoteByNumber.get(String(localOrder.id));
+    // Une commande locale historique sans horodatage fiable ne doit pas écraser une commande cloud existante.
+    if(existing&&!localOrder.updatedAt)continue;
+    const remoteTime=existing&&existing.updated_at?Date.parse(existing.updated_at):0;
+    const localTime=Date.parse(localOrder.updatedAt)||0;
+    if(existing&&remoteTime>=localTime)continue;
+    if(!localOrder.updatedAt)localOrder.updatedAt=new Date().toISOString();
+    const rowId=existing?existing.id:stableUuid("alpatool-order:"+cloudWorkshopId+":"+String(localOrder.id));
+    const orderRow=orderToCloud(localOrder,rowId);
+    const orderUpsert=await supabaseClient.from("orders").upsert(orderRow,{onConflict:"id"});
+    if(orderUpsert.error)throw new Error("Enregistrement de la commande "+localOrder.id+" impossible : "+orderUpsert.error.message);
+    remoteByNumber.set(String(localOrder.id),{...orderRow});
+    const itemRows=(Array.isArray(localOrder.items)?localOrder.items:[]).map(item=>{
+     const tool=toolByRef.get(item.ref);
+     if(!tool)return null;
+     return {id:stableUuid("alpatool-order-item:"+rowId+":"+String(item.ref)),workshop_id:cloudWorkshopId,order_id:rowId,tool_id:tool.id,quantity:Number(item.qty||0),unit_price:Number(item.unitPrice||0)};
+    }).filter(Boolean);
+    if(itemRows.length){
+     const itemUpsert=await supabaseClient.from("order_items").upsert(itemRows,{onConflict:"id"});
+     if(itemUpsert.error)throw new Error("Enregistrement des lignes de commande impossible : "+itemUpsert.error.message);
+    }
+   }
+  }
+
+  const localMovementRows=[];
+  const collectMovements=(ref,movements)=>{
+   if(!Array.isArray(movements))return;
+   assignMovementIds(ref,movements);
+   const tool=toolByRef.get(ref);
+   if(!tool)return;
+   movements.forEach(m=>localMovementRows.push(localMovementToCloud(ref,m,tool)));
+  };
+  data.forEach(t=>collectMovements(t.ref,t.movements));
+  deletedToolHistories.forEach(h=>collectMovements(h.ref,h.movements));
+  if(pushLocal&&localMovementRows.length){
+   const uniqueRows=Array.from(new Map(localMovementRows.map(m=>[m.id,m])).values());
+   const movementUpsert=await supabaseClient.from("stock_movements").upsert(uniqueRows,{onConflict:"id",ignoreDuplicates:true});
+   if(movementUpsert.error)throw new Error("Synchronisation de l'historique impossible : "+movementUpsert.error.message);
+  }
+
+  bundle=await fetchCloudOrderBundle();
+  const mergedOrders=new Map(orders.map(o=>[String(o.id),o]));
+  bundle.orders.forEach(row=>{
+   const remote=orderFromCloud(row,bundle.items,toolById);
+   const local=mergedOrders.get(String(remote.id));
+   const remoteTime=Date.parse(remote.updatedAt||row.created_at)||0;
+   const localTime=local?Date.parse(local.updatedAt||local.date)||0:0;
+   if(!local||remoteTime>=localTime)mergedOrders.set(String(remote.id),remote);
+  });
+  orders=Array.from(mergedOrders.values()).sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
+
+  const movementResult=await supabaseClient.from("stock_movements").select("*").eq("workshop_id",cloudWorkshopId).order("created_at",{ascending:false});
+  if(movementResult.error)throw new Error("Lecture de l'historique impossible : "+movementResult.error.message);
+  const movementsByRef=new Map();
+  (movementResult.data||[]).forEach(row=>{
+   const tool=toolById.get(row.tool_id);
+   if(!tool)return;
+   if(!movementsByRef.has(tool.ref))movementsByRef.set(tool.ref,[]);
+   movementsByRef.get(tool.ref).push(cloudMovementToLocal(row));
+  });
+  data=data.map(t=>({...t,movements:mergeMovementLists(t.movements,movementsByRef.get(t.ref)||[])}));
+  deletedToolHistories=deletedToolHistories.map(h=>({...h,movements:mergeMovementLists(h.movements,movementsByRef.get(h.ref)||[])}));
+  localStorage.setItem("tools-v1",JSON.stringify(data));
+  localStorage.setItem("tool-orders-v1",JSON.stringify(orders));
+  localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+  render();
+  const ordersModal=document.getElementById("ordersModal");
+  if(ordersModal&&ordersModal.classList.contains("open"))openOrders();
+  setCloudStatus("Stock, commandes et historique synchronisés avec Supabase · "+data.length+" outil(s), "+orders.length+" commande(s).");
+ }finally{
+  cloudOrdersSyncRunning=false;
+  if(cloudOrdersSyncQueued){
+   const shouldPush=cloudOrdersSyncQueued;
+   cloudOrdersSyncQueued=false;
+   setTimeout(()=>syncOrdersAndMovements(shouldPush).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true)),0);
+  }
+ }
+}
+async function syncToolsToCloud(){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudSyncRunning){cloudSyncQueued=true;return;}
+ cloudSyncRunning=true;
+ setCloudStatus("Synchronisation du stock…");
+ try{
+  const rows=data.map(toolToCloud);
+  if(rows.length){
+   const {error}=await supabaseClient.from("tools").upsert(rows,{onConflict:"workshop_id,ref"});
+   if(error)throw error;
+  }
+  const activeRefs=data.map(t=>t.ref);
+  let query=supabaseClient.from("tools").update({archived_at:new Date().toISOString()}).eq("workshop_id",cloudWorkshopId).is("archived_at",null);
+  if(activeRefs.length)query=query.not("ref","in","("+activeRefs.map(v=>'"'+String(v).replace(/"/g,'\\"')+'"').join(",")+")");
+  const {error:archiveError}=await query;
+  if(archiveError)throw archiveError;
+  setCloudStatus("Stock synchronisé · commandes et historique en cours…");
+ }finally{
+  cloudSyncRunning=false;
+  if(cloudSyncQueued){cloudSyncQueued=false;syncToolsToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));}
+ }
+}
+async function syncAllToCloud(){
+ if(!cloudReady||!cloudWorkshopId)return;
+ if(cloudDataSyncRunning){cloudDataSyncQueued=true;return;}
+ cloudDataSyncRunning=true;
+ try{
+  await syncToolsToCloud();
+  await syncOrdersAndMovements(true);
+ }finally{
+  cloudDataSyncRunning=false;
+  if(cloudDataSyncQueued){
+   cloudDataSyncQueued=false;
+   setTimeout(()=>syncAllToCloud().catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true)),0);
+  }
+ }
+}
+function startCloudRefresh(){
+ if(cloudRefreshTimer)clearInterval(cloudRefreshTimer);
+ cloudRefreshTimer=setInterval(()=>{
+  if(cloudReady&&!document.hidden)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+ },20000);
+}
+window.addEventListener("focus",()=>{
+ if(cloudReady)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+});
+document.addEventListener("visibilitychange",()=>{
+ if(cloudReady&&!document.hidden)syncOrdersAndMovements(false).catch(err=>setCloudStatus("Erreur de synchronisation : "+(err.message||err),true));
+});
+async function initializeCloudData(user){
+ cloudReady=false;
+ cloudUserId=user.id;
+ setCloudStatus("Connexion à la base de données…");
+ const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("workshop_id,role").eq("id",user.id).single();
+ if(profileError)throw new Error("Profil atelier introuvable : "+profileError.message);
+ cloudWorkshopId=profile.workshop_id;
+ if(!cloudWorkshopId)throw new Error("Aucun atelier n'est associé à ce compte.");
+ const {data:cloudTools,error:toolsError}=await supabaseClient.from("tools").select("*").eq("workshop_id",cloudWorkshopId).order("ref");
+ if(toolsError)throw new Error("Lecture des outils impossible : "+toolsError.message);
+ const activeCloudTools=(cloudTools||[]).filter(t=>!t.archived_at);
+ if(activeCloudTools.length){
+  const localMovements=new Map(data.map(t=>[t.ref,Array.isArray(t.movements)?t.movements:[]]));
+  data=activeCloudTools.map(row=>({...toolFromCloud(row),movements:localMovements.get(row.ref)||[]}));
+ }else if(!(cloudTools||[]).length){
+  const {error:importError}=await supabaseClient.from("tools").upsert(data.map(toolToCloud),{onConflict:"workshop_id,ref"});
+  if(importError)throw new Error("Import initial des outils impossible : "+importError.message);
+ }
+ const deletedByRef=new Map(deletedToolHistories.map(h=>[h.ref,h]));
+ (cloudTools||[]).filter(t=>t.archived_at).forEach(t=>{
+  if(!deletedByRef.has(t.ref)){
+   const history={ref:t.ref,supplier:t.supplier||"",toolType:t.tool_type||"",type:t.category||"Courante",dimension:t.dimension||"",deletedAt:formatCloudDateTime(t.archived_at),movements:[]};
+   deletedToolHistories.push(history);deletedByRef.set(t.ref,history);
+  }
+ });
+ cloudReady=true;
+ localStorage.setItem("tools-v1",JSON.stringify(data));
+ localStorage.setItem("tool-deleted-history-v1",JSON.stringify(deletedToolHistories));
+ render();
+ await syncAllToCloud();
+ startCloudRefresh();
+}
+// Authentification : aucun accès au contenu de l'application sans session valide.
+const authGate=document.getElementById("authGate");
+const authForm=document.getElementById("authForm");
+const authMessage=document.getElementById("authMessage");
+const authUserBar=document.getElementById("authUserBar");
+const authTestNotice=document.getElementById("authTestNotice");
+function setAuthMessage(message,isError=false){authMessage.textContent=message;authMessage.style.color=isError?"#b42318":"#166534";}
+function showAuthenticatedSession(user){
+  authGate.hidden=true;
+  authUserBar.style.display="flex";
+  authUserBar.innerHTML="";
+  const label=document.createElement("span");
+  label.textContent="Connecté : "+(user.email||"utilisateur");
+  const logout=document.createElement("button");
+  logout.type="button";logout.textContent="Déconnexion";
+  logout.addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();if(error)setAuthMessage(error.message,true);});
+  authUserBar.append(label,logout);
+  authTestNotice.style.display="block";
+  initializeCloudData(user).catch(err=>{cloudReady=false;setCloudStatus("Base de données non connectée : "+(err.message||err),true);});
+}
+function showSignedOut(){
+  authGate.hidden=false;
+  authUserBar.style.display="none";
+  authTestNotice.style.display="none";
+}
+authForm.addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  const submit=document.getElementById("authSubmit");
+  submit.disabled=true;setAuthMessage("Connexion en cours…");
+  try{
+    const {data:result,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    if(result.user) setAuthMessage("Connexion réussie.");
+  }catch(error){setAuthMessage(error.message||"Connexion impossible.",true);}
+  finally{submit.disabled=false;}
+});
+document.getElementById("authCreate").addEventListener("click",async()=>{
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||!password||password.length<8){setAuthMessage("Saisis un e-mail valide et un mot de passe d’au moins 8 caractères.",true);return;}
+  const button=document.getElementById("authCreate");button.disabled=true;setAuthMessage("Création du compte…");
+  try{
+    const workshopName=document.getElementById("authWorkshop").value.trim();
+    const displayName=email.split("@")[0];
+    const {data:result,error}=await supabaseClient.auth.signUp({
+      email,
+      password,
+      options:{data:{workshop_name:workshopName,display_name:displayName}}
+    });
+    if(error)throw error;
+    if(result.session){setAuthMessage("Compte créé et connecté.");}
+    else{setAuthMessage("Compte créé. Vérifie ta boîte e-mail pour confirmer l’adresse avant de te connecter.");}
+  }catch(error){setAuthMessage(error.message||"Création du compte impossible.",true);}
+  finally{button.disabled=false;}
+});
+supabaseClient.auth.onAuthStateChange((_event,session)=>{
+  if(session?.user)showAuthenticatedSession(session.user);else showSignedOut();
+});
+supabaseClient.auth.getSession().then(({data,error})=>{
+  if(error){showSignedOut();setAuthMessage("Impossible de vérifier la session : "+error.message,true);return;}
+  if(data.session?.user)showAuthenticatedSession(data.session.user);else showSignedOut();
+});
+
 render();
 </script>
 </body>
 </html><style>
+/* ALPATOOL — direction B : logiciel industriel premium */
+:root{--at-ink:#10263b;--at-muted:#6f8091;--at-line:#dce5ed;--at-blue:#176fd6;--at-navy:#071b2d;--at-surface:#fff;--at-bg:#edf2f7}
+body{background:radial-gradient(ellipse at 15% 0%,#f8fbff 0,transparent 36%),var(--at-bg);color:var(--at-ink);font-family:Inter,"Segoe UI",Arial,sans-serif}
+header{background:linear-gradient(112deg,#061522 0%,#0a2942 60%,#123e60 100%);padding:20px clamp(16px,3vw,38px);border-bottom:3px solid #e63946;box-shadow:0 8px 28px #071b2d24}
+.brand-mark{filter:drop-shadow(0 3px 6px #0003)}.brand-name{font-size:28px;letter-spacing:2.3px}.brand-sub{font-size:9px;letter-spacing:2.8px}
+.header-pill{background:#ffffff0b;border-color:#ffffff35;backdrop-filter:blur(8px)}
+.wrap{max-width:1440px;margin:28px auto;padding:0 clamp(12px,2.5vw,32px)}
+.dashboard-intro{padding:4px 2px 20px;margin-bottom:20px;border-bottom:1px solid #dce5ed;align-items:flex-end}
+.dashboard-eyebrow{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:1.8px;color:#176fd6}
+.dashboard-eyebrow:before{content:"";display:block;width:20px;height:2px;background:#e63946}
+.dashboard-intro h1{font-size:clamp(25px,3vw,34px);font-weight:780;letter-spacing:-1.1px;color:#0a2034}
+.dashboard-intro p{font-size:13px;color:#718195;margin-top:7px}
+.dashboard-live{border-radius:8px;background:#fff;border-color:#d6e1eb;padding:9px 12px;box-shadow:0 3px 10px #0b22370a}
+.cards{gap:14px;margin-bottom:22px}
+.card{min-height:128px;padding:22px 22px 18px;border:1px solid #dce5ed;border-radius:13px;background:linear-gradient(145deg,#fff,#fbfdff);box-shadow:0 4px 14px #10263b08;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.card:before{width:3px;background:#176fd6}
+.card:after{right:18px;top:16px;font-size:26px;opacity:.13;filter:grayscale(1)}
+.card:nth-child(2):before{background:#64748b}.card:nth-child(3):before{background:#dc3545}.card:nth-child(4):before{background:#0e7490}
+.card:hover{transform:translateY(-3px);border-color:#c5d7e7;box-shadow:0 12px 28px #10263b12}
+.label{font-size:10px;letter-spacing:1.1px;color:#6b7e90;font-weight:800}
+.value{font-size:clamp(27px,2.5vw,34px);letter-spacing:-1px;color:#10263b;margin-top:12px;font-variant-numeric:tabular-nums}
+nav{position:relative;gap:5px;padding:6px;margin-bottom:22px;background:#fff;border:1px solid #dce5ed;border-radius:12px;box-shadow:0 4px 16px #10263b08;flex-wrap:wrap}
+nav button{border-radius:8px;padding:11px 14px;color:#617386;font-size:12px;font-weight:750;letter-spacing:.1px}
+nav button:hover{background:#f1f6fb;border-color:#e0e9f1;color:#17304a}
+nav button.active{background:#0b2943;color:#fff;border-color:#0b2943;box-shadow:0 3px 8px #0b29432b}
+.primary{background:#176fd6!important;border-color:#176fd6!important;box-shadow:0 3px 8px #176fd624}.primary:hover{background:#0e5db8!important}
+.dashboard-grid{gap:18px;margin-bottom:24px}
+.dash-panel,.panel{border:1px solid #dce5ed;border-radius:13px;background:#fff;box-shadow:0 4px 16px #10263b08}
+.dash-panel{padding:21px 22px}
+.dash-head{margin-bottom:17px;align-items:center}
+.dash-title{font-size:15px;font-weight:800;letter-spacing:-.15px;color:#142e45}
+.dash-sub{font-size:11px;color:#8492a1;margin-top:5px}
+.dashboard-grid .dash-panel:before{width:3px;background:linear-gradient(180deg,#176fd6,#70b6ff)}
+.dashboard-grid .alert-panel-clickable:before{background:linear-gradient(180deg,#e63946,#ff9a9f)}
+.activity-item,.alert-item{border:1px solid #e6edf3;border-radius:9px;background:#fbfdff;padding:12px 13px;transition:background .15s,border-color .15s}
+.activity-item:hover,.alert-item:hover{background:#f3f8fd;border-color:#d4e2ef}
+.activity-ref,.alert-ref{font-size:12px;font-weight:750;color:#19364f}
+.activity-meta,.alert-meta{font-size:11px;color:#7b8b9a}
+.alert-count{border-radius:7px;font-variant-numeric:tabular-nums}
+.panel{padding:20px;box-shadow:0 5px 18px #10263b09}
+th{background:#f4f7fa;color:#6b7e90;font-size:10px;letter-spacing:.8px;font-weight:800}
+th,td{padding:13px 10px;border-bottom:1px solid #e8eef4}
+.tool-row:hover{background:#f3f8fc}
+input,select{border-color:#cbd8e3;border-radius:8px}
+input:focus,select:focus{border-color:#176fd6;box-shadow:0 0 0 3px #176fd61a}
+.badge{padding:5px 9px;font-size:11px;letter-spacing:.1px}
+.modalbox{border:1px solid #dce5ed;box-shadow:0 24px 80px #071b2d33;border-radius:16px}
+@media(max-width:900px){.wrap{margin:20px auto}.card{min-height:112px;padding:17px}.value{font-size:27px}.dashboard-grid{gap:12px}.dash-panel{padding:17px}}
+@media(max-width:600px){header{padding:15px 14px}.brand-name{font-size:22px}.brand-sub{letter-spacing:1.7px}.header-right{gap:7px;font-size:10px}.wrap{padding:0 10px;margin-top:17px}.dashboard-intro{align-items:flex-start;gap:10px;padding-bottom:15px}.dashboard-intro h1{font-size:24px}.dashboard-intro p{max-width:240px;line-height:1.5}.dashboard-live{font-size:10px;padding:7px 8px}.cards{gap:8px}.card{min-height:100px;padding:14px 13px}.card:after{right:10px;top:10px;font-size:18px}.label{font-size:9px;letter-spacing:.6px}.value{font-size:23px;margin-top:9px}nav{gap:4px;padding:5px;margin-bottom:14px}nav button{padding:9px 10px;font-size:11px}.dash-panel,.panel{padding:14px}.dashboard-grid{gap:10px}th,td{padding:10px 7px;font-size:12px}}
+
+.dashboard-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 18px;padding:2px 1px}.dashboard-eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#176fd6;margin-bottom:5px}.dashboard-intro h1{margin:0;color:#10263b;font-size:25px;letter-spacing:-.6px}.dashboard-intro p{margin:5px 0 0;color:#718096;font-size:13px}.dashboard-live{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:8px 11px;border:1px solid #dce6ef;border-radius:999px;background:#fff;color:#53677b;font-size:12px;font-weight:700}.dashboard-live-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #dcfce7}.card{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.card:hover{transform:translateY(-2px);box-shadow:0 9px 24px #12223512;border-color:#cbd9e6}.card .label{max-width:88%;line-height:1.4}.dashboard-grid .dash-panel{position:relative;overflow:hidden}.dashboard-grid .dash-panel:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#176fd6;opacity:.85}.dashboard-grid .alert-panel-clickable:before{background:#e63946}.dashboard-grid .dash-panel:focus-within,.dashboard-grid .dash-panel:hover{box-shadow:0 8px 24px #12223512}
 /* ALPATOOL — visual pass 2 : navigation + dashboard */
 body{background:#eef2f6;color:#122235}
 header{padding:18px 30px;background:linear-gradient(120deg,#071b2d 0%,#0b2943 65%,#123b5c 100%);border-bottom:2px solid #e63946;box-shadow:0 5px 20px #071b2d25}
@@ -843,5 +1448,336 @@ nav{gap:4px;margin-bottom:18px;padding:5px;background:#fff;border:1px solid #dfe
 th{background:#f5f8fb;color:#607286}th,td{padding:12px 9px}.tool-row:hover{background:#f5f9fd}
 .badge{padding:5px 9px}.ok{background:#e5f7eb}.warn{background:#fff4cf}.danger{background:#ffe6e8}
 @media(max-width:900px){header{padding:15px 18px}.wrap{padding:0 14px}.cards{gap:10px}.card{min-height:100px}.value{font-size:27px}}
-@media(max-width:600px){.wrap{padding:0 10px;margin-top:18px}.brand-name{font-size:22px}.brand-sub{font-size:8px}.cards{gap:8px}.card{padding:13px 14px;min-height:92px}.card:after{right:11px;top:11px;font-size:20px}.value{font-size:23px}.label{font-size:10px}nav{margin-bottom:14px}.dashboard-grid{gap:10px}.dash-panel{padding:14px}.dash-title{font-size:15px}}
+@media(max-width:600px){.dashboard-intro{align-items:flex-start;margin-bottom:14px}.dashboard-intro h1{font-size:22px}.dashboard-intro p{max-width:260px;line-height:1.45}.dashboard-live{font-size:10px;padding:7px 8px}.dashboard-intro{gap:8px}.wrap{padding:0 10px;margin-top:18px}.brand-name{font-size:22px}.brand-sub{font-size:8px}.cards{gap:8px}.card{padding:13px 14px;min-height:92px}.card:after{right:11px;top:11px;font-size:20px}.value{font-size:23px}.label{font-size:10px}nav{margin-bottom:14px}.dashboard-grid{gap:10px}.dash-panel{padding:14px}.dash-title{font-size:15px}}
+
+/* ALPATOOL — direction A : atelier industriel moderne */
+:root{--at-ink:#172b3d;--at-steel:#526779;--at-line:#cbd5df;--at-navy:#10283d;--at-blue:#1769aa;--at-red:#d9363e;--at-bg:#e8edf2}
+body{background:var(--at-bg);color:var(--at-ink)}
+header{background:linear-gradient(115deg,#0b1c2a,#17364d);border-bottom:4px solid var(--at-red);box-shadow:0 5px 16px #0b1c2a24;padding:18px 30px}
+.brand-name{letter-spacing:2.2px;font-size:27px}.brand-sub{color:#bdcbd6;letter-spacing:2.1px}
+.wrap{max-width:1600px;margin:0 auto;padding:22px 24px 32px;display:grid;grid-template-columns:220px minmax(0,1fr);grid-template-rows:auto auto auto minmax(300px,1fr);gap:0 22px;align-items:start}
+.dashboard-intro{grid-column:2;grid-row:1;margin:0 0 16px;padding:3px 0 16px;border-bottom:1px solid #cbd5df;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.dashboard-eyebrow{color:#1769aa;font-size:10px;font-weight:850;letter-spacing:1.8px}
+.dashboard-intro h1{font-size:29px;letter-spacing:-.7px;margin:0;color:#122b40}
+.dashboard-intro p{margin:6px 0 0;color:#63778a;font-size:13px}
+.dashboard-live{border-radius:5px;border:1px solid #c7d2dc;background:#f5f7f9;color:#526779;box-shadow:none;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.dashboard-live-dot{background:#25815a;box-shadow:0 0 0 3px #dcefe6}
+.cards{grid-column:2;grid-row:2;gap:12px;margin:0 0 16px}
+.card{min-height:105px;border-radius:7px;border:1px solid #cbd5df;background:#f9fbfc;box-shadow:0 2px 5px #172b3d0a;padding:17px 18px}
+.card:before{width:4px;background:#1769aa}
+.card:nth-child(2):before{background:#647b8d}.card:nth-child(3):before{background:#d9363e}.card:nth-child(4):before{background:#247b77}
+.card:after{opacity:.12;filter:none}
+.card:hover{transform:translateY(-1px);box-shadow:0 5px 12px #172b3d12;border-color:#aabac8}
+.label{font-size:10px;font-weight:800;letter-spacing:.9px;color:#63778a}
+.value{font-size:29px;font-weight:800;color:#122b40;margin-top:10px;letter-spacing:-.5px}
+nav{grid-column:1;grid-row:1 / span 4;align-self:stretch;position:sticky;top:18px;display:flex;flex-direction:column;align-items:stretch;gap:5px;margin:0;padding:9px;background:#10283d;border:1px solid #263f53;border-radius:8px;box-shadow:0 5px 15px #0b1c2a18;overflow:visible;flex-wrap:nowrap}
+nav:before{content:"NAVIGATION ATELIER";display:block;color:#8ea3b5;font-size:9px;font-weight:800;letter-spacing:1.5px;padding:10px 10px 12px;border-bottom:1px solid #31485b;margin-bottom:4px}
+nav button{display:flex;align-items:center;text-align:left;width:100%;white-space:normal;border:1px solid transparent;border-radius:5px;padding:12px 11px;color:#d2dce5;font-size:12px;font-weight:700;line-height:1.3;background:transparent}
+nav button:hover{background:#1c3b53;border-color:#2c4a62;color:#fff}
+nav button.active{background:#244d6a;border-color:#3c6b8b;color:#fff;box-shadow:inset 3px 0 0 #e0444b}
+nav button.primary{margin-top:12px;justify-content:center;background:#1769aa!important;border-color:#2c82c4!important;color:#fff!important}
+nav button.primary:hover{background:#1d7cbe!important}
+.dashboard-grid{grid-column:2;grid-row:3;gap:12px;margin:0 0 16px}
+.dash-panel{border:1px solid #cbd5df;border-radius:7px;padding:16px;background:#f9fbfc;box-shadow:0 2px 6px #172b3d08}
+.dash-head{padding-bottom:10px;border-bottom:1px solid #e0e6eb;margin-bottom:12px}
+.dash-title{font-size:14px;color:#17364d;font-weight:850}
+.dash-sub{font-size:11px;color:#718394}
+.activity-item,.alert-item{border:1px solid #dfe6ec;border-radius:5px;background:#fff;padding:10px 11px}
+.activity-item:hover,.alert-item:hover{background:#f0f5f8;border-color:#c1d0dc}
+.activity-ref,.alert-ref{color:#18364d;font-size:12px}
+.alert-count{border-radius:4px;background:#fde7e8;color:#a5262d}
+.panel{grid-column:2;grid-row:4;min-width:0;padding:17px;border:1px solid #cbd5df;border-radius:7px;background:#f9fbfc;box-shadow:0 2px 7px #172b3d08}
+.toolbar{align-items:center;gap:9px}
+.toolbar input{min-width:240px;flex:1}
+input,select,.type-filter-btn{border:1px solid #bac8d3;border-radius:5px;background:#fff}
+input:focus,select:focus{border-color:#1769aa;box-shadow:0 0 0 2px #1769aa1c}
+table{background:#fff;border:1px solid #dce4ea}
+th{background:#eaf0f4;color:#4f6476;font-size:10px;font-weight:850;letter-spacing:.7px}
+th,td{padding:11px 9px;border-bottom:1px solid #e1e7ec}
+.tool-row:hover{background:#edf4f8}
+.badge{border-radius:4px;font-size:11px}
+.modalbox{border-radius:8px;border:1px solid #cbd5df}
+@media(max-width:1100px){.wrap{grid-template-columns:185px minmax(0,1fr);gap:0 14px;padding:16px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}nav button{padding:10px 8px;font-size:11px}}
+@media(max-width:760px){.wrap{display:flex;flex-direction:column;padding:14px 10px;width:100%}.dashboard-intro,.cards,nav,.dashboard-grid,.panel{width:100%;grid-column:auto;grid-row:auto}.dashboard-intro{order:0;align-items:flex-start}.cards{order:1}.dashboard-grid{order:2}.panel{order:3}nav{order:0;position:static;display:flex;flex-direction:row;flex-wrap:wrap;margin:0 0 14px;padding:6px;gap:4px}nav:before{display:none}nav button{width:auto;flex:1 1 auto;justify-content:center;text-align:center;padding:9px 10px;font-size:11px}nav button.primary{margin-top:0}.dashboard-intro{margin-top:4px}.toolbar input{min-width:0;width:100%}}
+@media(max-width:480px){header{padding:14px 13px}.brand-name{font-size:22px}.brand-sub{font-size:8px;letter-spacing:1.5px}.wrap{padding:12px 8px}.dashboard-intro h1{font-size:23px}.dashboard-intro p{font-size:12px}.dashboard-live{display:none}.cards{gap:8px}.card{padding:13px;min-height:88px}.value{font-size:23px}.dashboard-grid{gap:9px}.dash-panel,.panel{padding:12px}nav button{flex:1 1 42%}}
+
+
+/* ALPATOOL — refonte PC inspirée du dashboard de gestion de stock choisi */
+@media (min-width: 1101px) {
+  body { background:#eef2f6; }
+  header { padding:16px 30px; min-height:76px; }
+  #cloudStatus { max-width:none !important; padding-left:255px !important; padding-right:28px !important; }
+  .wrap {
+    width:100%; max-width:none; margin:0; padding:22px 28px 34px;
+    grid-template-columns:204px minmax(0,1fr); gap:0 22px;
+  }
+  .dashboard-intro { padding-bottom:14px; margin-bottom:16px; }
+  .dashboard-intro h1 { font-size:28px; }
+  .cards { grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+  .card { min-width:0; min-height:106px; padding:17px 20px; }
+  .dashboard-grid { grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr); gap:16px; margin-bottom:18px; }
+  .dash-panel { min-width:0; }
+  .panel { min-width:0; padding:20px; }
+  .toolbar { align-items:center; }
+  .toolbar input { min-width:280px; flex:1 1 320px; }
+  table { width:100%; table-layout:auto; }
+  th,td { padding:12px 10px; }
+  nav { width:204px; }
+}
+@media (min-width: 1500px) {
+  .wrap { padding-left:32px; padding-right:32px; grid-template-columns:210px minmax(0,1fr); gap:0 24px; }
+  nav { width:210px; }
+  .cards { gap:16px; }
+  .card { min-height:112px; padding:19px 22px; }
+  .dashboard-grid { grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr); gap:18px; }
+  .dash-panel { padding:19px 20px; }
+  .panel { padding:22px; }
+}
+
+/* ALPATOOL — table atelier premium : lisibilité, hiérarchie et actions rapides */
+@media (min-width: 1101px) {
+  .panel:has(#body) {
+    padding:0;
+    overflow:hidden;
+    border:1px solid #dce5ee;
+    border-radius:16px;
+    box-shadow:0 8px 28px rgba(15,35,55,.055);
+    background:#fff;
+  }
+  .panel:has(#body) .toolbar {
+    padding:20px 22px 14px;
+    gap:12px;
+    background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);
+    border-bottom:1px solid #e5ebf2;
+  }
+  #search {
+    min-height:42px;
+    border:1px solid #d7e0e9;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 1px 2px rgba(15,35,55,.025);
+  }
+  #search:focus {
+    outline:0;
+    border-color:#1682a5;
+    box-shadow:0 0 0 3px rgba(22,130,165,.12);
+  }
+  .panel:has(#body) table {
+    border-collapse:separate;
+    border-spacing:0;
+    font-size:13px;
+  }
+  .panel:has(#body) thead th {
+    position:sticky;
+    top:0;
+    z-index:2;
+    white-space:nowrap;
+    padding:13px 12px;
+    background:#f0f5f9;
+    color:#526579;
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.055em;
+    border-bottom:1px solid #dce5ee;
+  }
+  .panel:has(#body) tbody td {
+    padding:14px 12px;
+    border-bottom:1px solid #edf1f5;
+    color:#34465a;
+    vertical-align:middle;
+    transition:background .16s ease;
+  }
+  .panel:has(#body) tbody tr:nth-child(even) td { background:#fbfcfe; }
+  .panel:has(#body) tbody tr.tool-row { cursor:pointer; }
+  .panel:has(#body) tbody tr.tool-row:hover td {
+    background:#edf7fb;
+    border-bottom-color:#d7eaf2;
+  }
+  .panel:has(#body) tbody tr.tool-row td:first-child {
+    border-left:3px solid transparent;
+    padding-left:13px;
+  }
+  .panel:has(#body) tbody tr.tool-row:hover td:first-child { border-left-color:#0e7490; }
+  .panel:has(#body) tbody td:first-child b {
+    color:#102d46;
+    font-size:13px;
+    letter-spacing:.01em;
+  }
+  .panel:has(#body) tbody td .small {
+    display:inline-block;
+    margin-top:4px;
+    color:#718195;
+    font-size:11px;
+  }
+  .panel:has(#body) .badge {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 9px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.015em;
+    white-space:nowrap;
+  }
+  .panel:has(#body) .badge.ok { background:#e3f7ed; color:#087747; }
+  .panel:has(#body) .badge.warn { background:#fff2d6; color:#925b00; }
+  .panel:has(#body) .badge.danger { background:#ffe4e6; color:#b42332; }
+  .panel:has(#body) .order-link {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 10px;
+    border-radius:8px;
+    background:#0e7490;
+    color:#fff;
+    font-size:11px;
+    font-weight:750;
+    text-decoration:none;
+    white-space:nowrap;
+    box-shadow:0 2px 5px rgba(14,116,144,.15);
+  }
+  .panel:has(#body) .order-link:hover { background:#155e75; }
+  .panel:has(#body) #orderSummary { margin:0; padding:0 22px 12px; }
+}
+@media (max-width: 1100px) {
+  .panel:has(#body) { overflow-x:auto; }
+  .panel:has(#body) table { min-width:1120px; }
+}
+
+
+/* ALPATOOL — suivi des commandes : cartes fournisseurs premium */
+.orders-modalbox {
+  background:#f4f7fb;
+  border:1px solid #dce5ee;
+  border-radius:18px;
+  box-shadow:0 24px 80px rgba(7,27,45,.24);
+}
+.orders-modalbox .orders-modal-header {
+  margin:-2px -2px 14px;
+  padding:4px 2px 14px;
+  background:transparent;
+  border-bottom:1px solid #dce5ee;
+}
+.orders-modalbox .orders-modal-header h2 {
+  color:#102d46;
+  font-size:22px;
+  letter-spacing:-.025em;
+}
+.orders-modalbox #orderHistorySearch {
+  min-height:42px;
+  border-radius:10px !important;
+  border:1px solid #d4dee8 !important;
+  box-shadow:0 2px 5px rgba(16,45,70,.035);
+}
+.orders-modalbox #orderHistorySearch:focus {
+  outline:0;
+  border-color:#0e7490 !important;
+  box-shadow:0 0 0 3px rgba(14,116,144,.12);
+}
+.orders-modalbox .order-summary-card {
+  padding:18px 20px;
+  background:#fff;
+  border:1px solid #dce5ee;
+  border-radius:14px;
+  box-shadow:0 4px 14px rgba(16,45,70,.045);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+.orders-modalbox .order-summary-card:hover {
+  border-color:#bfd3e1;
+  box-shadow:0 7px 20px rgba(16,45,70,.075);
+}
+.orders-modalbox .order-summary-head {
+  align-items:flex-start;
+  gap:14px;
+}
+.orders-modalbox .order-summary-title {
+  color:#102d46;
+  font-size:16px !important;
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+.orders-modalbox .order-summary-head .small {
+  color:#6b7c90;
+  line-height:1.55;
+}
+.orders-modalbox .badge {
+  display:inline-flex;
+  align-items:center;
+  white-space:nowrap;
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  background:#e9eff5;
+  color:#42566b;
+}
+.orders-modalbox .badge.ok { background:#dcf7e8; color:#087747; }
+.orders-modalbox .badge.warn { background:#fff0ce; color:#895600; }
+.orders-modalbox .badge.danger { background:#ffe4e6; color:#b42332; }
+.orders-modalbox .order-summary-card table {
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #e2eaf1;
+  border-radius:10px;
+  font-size:12px;
+}
+.orders-modalbox .order-summary-card table thead th {
+  padding:10px 12px;
+  background:#f0f5f9;
+  color:#526579;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  border-bottom:1px solid #e0e8ef;
+}
+.orders-modalbox .order-summary-card table tbody td {
+  padding:11px 12px;
+  background:#fff;
+  border-bottom:1px solid #edf1f5;
+}
+.orders-modalbox .order-summary-card table tbody tr:last-child td { border-bottom:0; }
+.orders-modalbox .order-summary-card table tbody tr:hover td { background:#f5fafc; }
+.orders-modalbox .order-summary-card input[type="date"] {
+  min-height:36px;
+  border:1px solid #d5e0e9 !important;
+  border-radius:8px !important;
+  padding:7px 9px !important;
+}
+.orders-modalbox .order-summary-card button,
+.orders-modalbox .orders-modal-footer button {
+  min-height:36px;
+  border-radius:8px;
+  font-weight:750;
+}
+.orders-modalbox .order-summary-card .actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid #edf1f5;
+}
+.orders-modalbox .order-summary-card details {
+  border-radius:9px !important;
+  border-color:#dce5ee !important;
+}
+.orders-modalbox .orders-modal-footer {
+  margin-top:12px;
+  padding-top:12px;
+  background:#f4f7fb;
+  border-top:1px solid #dce5ee;
+}
+@media (max-width: 640px) {
+  .orders-modalbox .order-summary-card { padding:14px; }
+  .orders-modalbox .order-summary-head { flex-direction:column; }
+  .orders-modalbox .order-summary-head > div:last-child { align-self:flex-start; }
+  .orders-modalbox .order-summary-card table { font-size:11px; }
+  .orders-modalbox .order-summary-card table thead th,
+  .orders-modalbox .order-summary-card table tbody td { padding:9px 7px; }
+}
+
 </style>
