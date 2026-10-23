@@ -422,7 +422,7 @@ function confirmCreateOrder(){
    if(!Number.isInteger(q)||q<=0){alert("La quantité commandée pour "+x.ref+" doit être un nombre entier supérieur à 0.");input?.focus();return;}
    items.push({ref:x.ref,qty:q,unitPrice:Number(x.price||0),total:q*Number(x.price||0),lead:Number(x.lead||0)});
  }
- const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0)};
+ const order={id:"CMD-"+Date.now(),date:new Date().toLocaleDateString("fr-CH"),supplier:pendingOrderSupplier,items,status:"À commander",total:items.reduce((a,x)=>a+x.total,0),updatedAt:new Date().toISOString()};
  orders.unshift(order);save();closeCreateOrder();openOrders();
 }
 function formatDateForInput(dateText){
@@ -437,7 +437,7 @@ function setDeliveryDate(id,value){
  const d=new Date(value+"T12:00:00");
  if(Number.isNaN(d.getTime())) return;
  o.expectedDelivery=d.toLocaleDateString("fr-CH");
- o.simulatedDelivery=true;
+ o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();o.updatedAt=new Date().toISOString();
  save(); openOrders();
 }
 function deliverySimulation(id,days){
@@ -478,12 +478,12 @@ function renderOrderHistory(query){
 }
 
 function closeOrders(){document.getElementById("ordersModal").classList.remove("open")}
-function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;save();render();openOrders()}
+function markOrderOrdered(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status!=="À commander")return;const maxLead=Math.max(0,...o.items.map(i=>Number(i.lead||0)));const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+maxLead);o.status="Commandée";o.orderedAt=new Date().toLocaleDateString("fr-CH");o.expectedDelivery=d.toLocaleDateString("fr-CH");o.leadDays=maxLead;o.updatedAt=new Date().toISOString();save();render();openOrders()}
 let pendingCancelOrderId="";
 function cancelOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;if(o.status==="Reçue"||o.status==="Annulée")return;pendingCancelOrderId=id;document.getElementById("cancelOrderMessage").innerHTML=`Voulez-vous vraiment annuler la commande <b>${o.id}</b> ?<br><br>Aucun stock ne sera modifié.`;document.getElementById("cancelOrderModal").classList.add("open")}
 function closeCancelOrder(){pendingCancelOrderId="";document.getElementById("cancelOrderModal").classList.remove("open")}
-function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");save();closeCancelOrder();openOrders()}
-function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");save();openOrders()}
+function confirmCancelOrder(){if(!pendingCancelOrderId)return;const o=orders.find(x=>x.id===pendingCancelOrderId);if(!o){closeCancelOrder();return;}if(o.status==="Reçue"||o.status==="Annulée"){closeCancelOrder();return;}o.status="Annulée";o.cancelledAt=new Date().toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();closeCancelOrder();openOrders()}
+function setReceivedDate(id,value){const o=orders.find(x=>x.id===id);if(!o || o.status!=="Reçue" || !value)return;const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();openOrders()}
 let pendingReceiveOrderId="";
 function receiveOrder(id){
  const o=orders.find(x=>x.id===id);if(!o)return;
@@ -500,7 +500,7 @@ function confirmReceiveOrder(){
  if(!o||o.status!=="Commandée"||!value)return;
  const d=new Date(value+"T12:00:00");if(Number.isNaN(d.getTime()))return;
  for(const item of o.items){const tool=data.find(x=>x.ref===item.ref);if(tool){const oldQty=tool.qty;tool.qty=Number(tool.qty)+Number(item.qty);tool.movements=Array.isArray(tool.movements)?tool.movements:[];tool.movements.push({id:newMovementId(),date:new Date().toLocaleString("fr-CH"),type:"entrée",qty:Number(item.qty),delta:Number(item.qty),oldQty,newQty:tool.qty,note:"Réception commande "+o.id});}}
- o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");save();closeReceiveOrderModal();render();openOrders();
+ o.status="Reçue";o.receivedAt=d.toLocaleDateString("fr-CH");o.updatedAt=new Date().toISOString();save();closeReceiveOrderModal();render();openOrders();
 }
 function show(f,b){filter=f;document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");render()}
 function setOrderFilter(b){filter="low";document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active");const search=document.getElementById("search");if(search)search.value="";const typeEl=document.getElementById("typeFilter");if(typeEl)typeEl.dataset.value="";const typeLabel=document.getElementById("typeFilterLabel");if(typeLabel)typeLabel.textContent="Tous les types";render();const box=document.getElementById("orderSummary");if(box){box.classList.add("open");box.scrollIntoView({behavior:"smooth",block:"nearest"});}}
@@ -1086,11 +1086,13 @@ async function syncOrdersAndMovements(pushLocal=true){
   if(pushLocal){
    const remoteByNumber=new Map(bundle.orders.filter(o=>o.order_number).map(o=>[String(o.order_number),o]));
    for(const localOrder of orders.slice()){
-    if(!localOrder.updatedAt)localOrder.updatedAt=new Date().toISOString();
     const existing=remoteByNumber.get(String(localOrder.id));
+    // Une commande locale historique sans horodatage fiable ne doit pas écraser une commande cloud existante.
+    if(existing&&!localOrder.updatedAt)continue;
     const remoteTime=existing&&existing.updated_at?Date.parse(existing.updated_at):0;
     const localTime=Date.parse(localOrder.updatedAt)||0;
     if(existing&&remoteTime>=localTime)continue;
+    if(!localOrder.updatedAt)localOrder.updatedAt=new Date().toISOString();
     const rowId=existing?existing.id:stableUuid("alpatool-order:"+cloudWorkshopId+":"+String(localOrder.id));
     const orderRow=orderToCloud(localOrder,rowId);
     const orderUpsert=await supabaseClient.from("orders").upsert(orderRow,{onConflict:"id"});
