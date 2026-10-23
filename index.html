@@ -123,6 +123,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 <div id="authTestNotice">Mode test : les outils et quantités sont synchronisés avec Supabase pour cet atelier. L’historique détaillé des mouvements et les commandes restent locaux. Version de test uniquement.</div>
 <div id="cloudStatus" role="status" style="max-width:1320px;margin:0 auto;padding:0 20px;font-size:12px;color:#64748b"></div>
 <div class="wrap">
+<div class="dashboard-intro"><div><div class="dashboard-eyebrow">PILOTAGE DE L’ATELIER</div><h1>Vue d’ensemble</h1><p>Le stock, les alertes et les derniers mouvements en un coup d’œil.</p></div><div class="dashboard-live"><span class="dashboard-live-dot"></span> Tableau de bord</div></div>
 <div class="cards">
 <div class="card"><div class="label">Outils en stock</div><div class="value" id="count">0</div></div>
 <div class="card"><div class="label">Outils spéciaux</div><div class="value" id="special">0</div></div>
@@ -1314,6 +1315,8 @@ render();
 </script>
 </body>
 </html><style>
+/* ALPATOOL — tableau de bord : hiérarchie visuelle */
+.dashboard-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 18px;padding:2px 1px}.dashboard-eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#176fd6;margin-bottom:5px}.dashboard-intro h1{margin:0;color:#10263b;font-size:25px;letter-spacing:-.6px}.dashboard-intro p{margin:5px 0 0;color:#718096;font-size:13px}.dashboard-live{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:8px 11px;border:1px solid #dce6ef;border-radius:999px;background:#fff;color:#53677b;font-size:12px;font-weight:700}.dashboard-live-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #dcfce7}.card{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.card:hover{transform:translateY(-2px);box-shadow:0 9px 24px #12223512;border-color:#cbd9e6}.card .label{max-width:88%;line-height:1.4}.dashboard-grid .dash-panel{position:relative;overflow:hidden}.dashboard-grid .dash-panel:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#176fd6;opacity:.85}.dashboard-grid .alert-panel-clickable:before{background:#e63946}.dashboard-grid .dash-panel:focus-within,.dashboard-grid .dash-panel:hover{box-shadow:0 8px 24px #12223512}
 /* ALPATOOL — visual pass 2 : navigation + dashboard */
 body{background:#eef2f6;color:#122235}
 header{padding:18px 30px;background:linear-gradient(120deg,#071b2d 0%,#0b2943 65%,#123b5c 100%);border-bottom:2px solid #e63946;box-shadow:0 5px 20px #071b2d25}
@@ -1329,5 +1332,5 @@ nav{gap:4px;margin-bottom:18px;padding:5px;background:#fff;border:1px solid #dfe
 th{background:#f5f8fb;color:#607286}th,td{padding:12px 9px}.tool-row:hover{background:#f5f9fd}
 .badge{padding:5px 9px}.ok{background:#e5f7eb}.warn{background:#fff4cf}.danger{background:#ffe6e8}
 @media(max-width:900px){header{padding:15px 18px}.wrap{padding:0 14px}.cards{gap:10px}.card{min-height:100px}.value{font-size:27px}}
-@media(max-width:600px){.wrap{padding:0 10px;margin-top:18px}.brand-name{font-size:22px}.brand-sub{font-size:8px}.cards{gap:8px}.card{padding:13px 14px;min-height:92px}.card:after{right:11px;top:11px;font-size:20px}.value{font-size:23px}.label{font-size:10px}nav{margin-bottom:14px}.dashboard-grid{gap:10px}.dash-panel{padding:14px}.dash-title{font-size:15px}}
+@media(max-width:600px){.dashboard-intro{align-items:flex-start;margin-bottom:14px}.dashboard-intro h1{font-size:22px}.dashboard-intro p{max-width:260px;line-height:1.45}.dashboard-live{font-size:10px;padding:7px 8px}.dashboard-intro{gap:8px}.wrap{padding:0 10px;margin-top:18px}.brand-name{font-size:22px}.brand-sub{font-size:8px}.cards{gap:8px}.card{padding:13px 14px;min-height:92px}.card:after{right:11px;top:11px;font-size:20px}.value{font-size:23px}.label{font-size:10px}nav{margin-bottom:14px}.dashboard-grid{gap:10px}.dash-panel{padding:14px}.dash-title{font-size:15px}}
 </style>
