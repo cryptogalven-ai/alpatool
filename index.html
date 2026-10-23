@@ -156,26 +156,6 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
   #detailsModal .detail-card { min-height:68px; padding:13px; }
 }
 
-
-
-/* ALPATOOL — pictogrammes SVG modernes, cohérents et accessibles */
-.nav-icon,.metric-icon,.action-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
-.nav-icon{width:18px;height:18px;margin-right:8px}
-.nav-icon svg,.metric-icon svg,.action-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-nav button{display:inline-flex;align-items:center;justify-content:center;gap:0}
-nav button .nav-icon{color:currentColor;opacity:.9}
-nav button.active .nav-icon{color:#0e7490}
-nav button.primary .nav-icon{color:inherit}
-.card .label{display:flex;align-items:center;gap:9px}
-.metric-icon{width:34px;height:34px;padding:8px;border-radius:11px;background:#e9f4f8;color:#0e7490}
-.metric-icon-warn{background:#fff1dc;color:#b76e00}
-.metric-icon-value{background:#e8edff;color:#465cc8}
-#detailsModal .detail-actions .action-icon{width:16px;height:16px;margin-right:6px;vertical-align:middle}
-#detailsModal .detail-actions button{display:inline-flex;align-items:center;justify-content:center;gap:0}
-#detailsModal .detail-actions button:not(.primary):not([style*="dc2626"]) .action-icon{color:#526579}
-#detailsModal .detail-actions button[style*="dc2626"] .action-icon{color:#fff}
-@media(max-width:900px){nav button .nav-icon{margin-right:6px}.metric-icon{width:30px;height:30px}}
-
 </style>
 
 
@@ -212,17 +192,17 @@ nav button.primary .nav-icon{color:inherit}
 <div class="wrap">
 <div class="dashboard-intro"><div><div class="dashboard-eyebrow">PILOTAGE DE L’ATELIER</div><h1>Vue d’ensemble</h1><p>Le stock, les alertes et les derniers mouvements en un coup d’œil.</p></div><div class="dashboard-live"><span class="dashboard-live-dot"></span> Tableau de bord</div></div>
 <div class="cards">
-<div class="card"><div class="label"><span class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8 12 4l8 4-8 4z"/><path d="M4 8v8l8 4 8-4V8M12 12v8"/></svg></span>Outils en stock</div><div class="value" id="count">0</div></div>
-<div class="card"><div class="label"><span class="metric-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 14 8l5-2-2 5 4 3-5 1-1 5-3-4-4 3 1-5-4-3 5-1z"/></svg></span>Outils spéciaux</div><div class="value" id="special">0</div></div>
-<div class="card"><div class="label"><span class="metric-icon metric-icon-warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/></svg></span>Sous le stock de sécurité</div><div class="value" id="orders">0</div></div>
-<div class="card"><div class="label"><span class="metric-icon metric-icon-value"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.6-1-3-1-1.5 0-2.5.8-2.5 2s1 2 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.2 0-2.3-.4-3-1.2M12 5.5v13"/></svg></span>Valeur du stock</div><div class="value" id="value">0 CHF</div></div>
+<div class="card"><div class="label">Outils en stock</div><div class="value" id="count">0</div></div>
+<div class="card"><div class="label">Outils spéciaux</div><div class="value" id="special">0</div></div>
+<div class="card"><div class="label">Sous le stock de sécurité</div><div class="value" id="orders">0</div></div>
+<div class="card"><div class="label">Valeur du stock</div><div class="value" id="value">0 CHF</div></div>
 </div>
 <nav>
-<button class="active" onclick="show('all',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Tous</button>
-<button onclick="show('special',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l1 5-2 3v8l-3 2-3-2v-8L7 8z"/><path d="M9 7h6M9 15h6"/></svg></span>Fraises spéciales</button>
-<button id="orderNavButton" type="button"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-1.5 14h-13z"/><path d="M8 9h8M9 13h6"/></svg></span>À commander</button>
-<button onclick="show('pieces',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/></svg></span>Recherche par pièce</button><button type="button" onclick="openOrders()"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18l-2 13H5z"/><path d="M8 7a4 4 0 0 1 8 0M8 12h8"/></svg></span>Commandes</button><button onclick="openAnalysis()"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h17"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="13" y="8" width="3" height="9" rx="1"/><rect x="19" y="4" width="2" height="13" rx=".5"/></svg></span>Analyse utilisation</button>
-<button class="primary" onclick="openModal()"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>Ajouter un outil</button>
+<button class="active" onclick="show('all',this)">Tous</button>
+<button onclick="show('special',this)">Fraises spéciales</button>
+<button id="orderNavButton" type="button">À commander</button>
+<button onclick="show('pieces',this)">Recherche par pièce</button><button type="button" onclick="openOrders()">📦 Commandes</button><button onclick="openAnalysis()">Analyse utilisation</button>
+<button class="primary" onclick="openModal()">+ Ajouter un outil</button>
 </nav>
 <div class="dashboard-grid">
 <div class="dash-panel activity-panel-clickable" onclick="openActivityHistory()" title="Cliquer pour afficher tout l'historique des mouvements"><div class="dash-head"><div><div class="dash-title">Activité récente</div><div class="dash-sub">Derniers mouvements de stock</div></div><div class="activity-open">Voir tout →</div></div><div id="recentActivity" class="activity-list" onclick="event.stopPropagation()"></div></div>
@@ -301,7 +281,7 @@ nav button.primary .nav-icon{color:inherit}
 <div class="modal" id="detailsModal"><div class="modalbox">
 <div class="modal-head"><h2 id="detailTitle">Détail de l'outil</h2><button type="button" class="modal-close" onclick="closeDetails()" aria-label="Fermer">✕</button></div>
 <div id="detailContent"></div>
-<div class="actions detail-actions"><button onclick="closeDetails()"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></span>Fermer</button><button onclick="showHistoryFromDetail()"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Historique</button><button onclick="openMovementFromDetail()" class="primary"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></span>Mouvement de stock</button><button type="button" class="primary" onclick="orderFromDetail()"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.5 11h10L21 8H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg></span>Commander</button><button onclick="editTool()"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.8 4.8L8 20l11-11-4-4zM13.5 6.5l4 4"/></svg></span>Modifier</button><button onclick="deleteTool()" style="background:#dc2626;color:#fff"><span class="action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></span>Supprimer</button></div>
+<div class="actions detail-actions"><button onclick="closeDetails()">Fermer</button><button onclick="showHistoryFromDetail()">Historique</button><button onclick="openMovementFromDetail()" class="primary">Mouvement de stock</button><button type="button" class="primary" onclick="orderFromDetail()">🛒 Commander</button><button onclick="editTool()">Modifier</button><button onclick="deleteTool()" style="background:#dc2626;color:#fff">Supprimer</button></div>
 </div></div>
 
 
