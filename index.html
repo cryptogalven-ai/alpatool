@@ -1035,7 +1035,7 @@ function localMovementToCloud(ref,m,toolRow){
   qty_before:Math.max(0,Number(m.oldQty!==undefined?m.oldQty:0)),
   qty_after:Math.max(0,Number(m.newQty!==undefined?m.newQty:0)),
   note:m.note||"",
-  created_by:cloudUserId||null,
+  created_by:null,
   created_at:dateTextToIso(m.date)||new Date().toISOString()
  };
 }
