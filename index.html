@@ -1579,4 +1579,138 @@ th,td{padding:11px 9px;border-bottom:1px solid #e1e7ec}
   .panel:has(#body) table { min-width:1120px; }
 }
 
+
+/* ALPATOOL — suivi des commandes : cartes fournisseurs premium */
+.orders-modalbox {
+  background:#f4f7fb;
+  border:1px solid #dce5ee;
+  border-radius:18px;
+  box-shadow:0 24px 80px rgba(7,27,45,.24);
+}
+.orders-modalbox .orders-modal-header {
+  margin:-2px -2px 14px;
+  padding:4px 2px 14px;
+  background:transparent;
+  border-bottom:1px solid #dce5ee;
+}
+.orders-modalbox .orders-modal-header h2 {
+  color:#102d46;
+  font-size:22px;
+  letter-spacing:-.025em;
+}
+.orders-modalbox #orderHistorySearch {
+  min-height:42px;
+  border-radius:10px !important;
+  border:1px solid #d4dee8 !important;
+  box-shadow:0 2px 5px rgba(16,45,70,.035);
+}
+.orders-modalbox #orderHistorySearch:focus {
+  outline:0;
+  border-color:#0e7490 !important;
+  box-shadow:0 0 0 3px rgba(14,116,144,.12);
+}
+.orders-modalbox .order-summary-card {
+  padding:18px 20px;
+  background:#fff;
+  border:1px solid #dce5ee;
+  border-radius:14px;
+  box-shadow:0 4px 14px rgba(16,45,70,.045);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+.orders-modalbox .order-summary-card:hover {
+  border-color:#bfd3e1;
+  box-shadow:0 7px 20px rgba(16,45,70,.075);
+}
+.orders-modalbox .order-summary-head {
+  align-items:flex-start;
+  gap:14px;
+}
+.orders-modalbox .order-summary-title {
+  color:#102d46;
+  font-size:16px !important;
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+.orders-modalbox .order-summary-head .small {
+  color:#6b7c90;
+  line-height:1.55;
+}
+.orders-modalbox .badge {
+  display:inline-flex;
+  align-items:center;
+  white-space:nowrap;
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  background:#e9eff5;
+  color:#42566b;
+}
+.orders-modalbox .badge.ok { background:#dcf7e8; color:#087747; }
+.orders-modalbox .badge.warn { background:#fff0ce; color:#895600; }
+.orders-modalbox .badge.danger { background:#ffe4e6; color:#b42332; }
+.orders-modalbox .order-summary-card table {
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #e2eaf1;
+  border-radius:10px;
+  font-size:12px;
+}
+.orders-modalbox .order-summary-card table thead th {
+  padding:10px 12px;
+  background:#f0f5f9;
+  color:#526579;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  border-bottom:1px solid #e0e8ef;
+}
+.orders-modalbox .order-summary-card table tbody td {
+  padding:11px 12px;
+  background:#fff;
+  border-bottom:1px solid #edf1f5;
+}
+.orders-modalbox .order-summary-card table tbody tr:last-child td { border-bottom:0; }
+.orders-modalbox .order-summary-card table tbody tr:hover td { background:#f5fafc; }
+.orders-modalbox .order-summary-card input[type="date"] {
+  min-height:36px;
+  border:1px solid #d5e0e9 !important;
+  border-radius:8px !important;
+  padding:7px 9px !important;
+}
+.orders-modalbox .order-summary-card button,
+.orders-modalbox .orders-modal-footer button {
+  min-height:36px;
+  border-radius:8px;
+  font-weight:750;
+}
+.orders-modalbox .order-summary-card .actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid #edf1f5;
+}
+.orders-modalbox .order-summary-card details {
+  border-radius:9px !important;
+  border-color:#dce5ee !important;
+}
+.orders-modalbox .orders-modal-footer {
+  margin-top:12px;
+  padding-top:12px;
+  background:#f4f7fb;
+  border-top:1px solid #dce5ee;
+}
+@media (max-width: 640px) {
+  .orders-modalbox .order-summary-card { padding:14px; }
+  .orders-modalbox .order-summary-head { flex-direction:column; }
+  .orders-modalbox .order-summary-head > div:last-child { align-self:flex-start; }
+  .orders-modalbox .order-summary-card table { font-size:11px; }
+  .orders-modalbox .order-summary-card table thead th,
+  .orders-modalbox .order-summary-card table tbody td { padding:9px 7px; }
+}
+
 </style>
