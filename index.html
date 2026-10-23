@@ -1122,7 +1122,7 @@ async function syncOrdersAndMovements(pushLocal=true){
   deletedToolHistories.forEach(h=>collectMovements(h.ref,h.movements));
   if(pushLocal&&localMovementRows.length){
    const uniqueRows=Array.from(new Map(localMovementRows.map(m=>[m.id,m])).values());
-   const movementUpsert=await supabaseClient.from("stock_movements").upsert(uniqueRows,{onConflict:"id"});
+   const movementUpsert=await supabaseClient.from("stock_movements").upsert(uniqueRows,{onConflict:"id",ignoreDuplicates:true});
    if(movementUpsert.error)throw new Error("Synchronisation de l'historique impossible : "+movementUpsert.error.message);
   }
 
