@@ -437,7 +437,7 @@ function setDeliveryDate(id,value){
  const d=new Date(value+"T12:00:00");
  if(Number.isNaN(d.getTime())) return;
  o.expectedDelivery=d.toLocaleDateString("fr-CH");
- o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();o.updatedAt=new Date().toISOString();
+ o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();
  save(); openOrders();
 }
 function deliverySimulation(id,days){
@@ -445,7 +445,7 @@ function deliverySimulation(id,days){
  if(!o || o.status!=="Commandée") return;
  const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+Number(days));
  o.expectedDelivery=d.toLocaleDateString("fr-CH");
- o.simulatedDelivery=true;
+ o.simulatedDelivery=true;o.updatedAt=new Date().toISOString();
  save(); openOrders();
 }
 function getDeliveryInfo(o){
