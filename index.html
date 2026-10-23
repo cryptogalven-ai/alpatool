@@ -1315,7 +1315,56 @@ render();
 </script>
 </body>
 </html><style>
-/* ALPATOOL — tableau de bord : hiérarchie visuelle */
+/* ALPATOOL — direction B : logiciel industriel premium */
+:root{--at-ink:#10263b;--at-muted:#6f8091;--at-line:#dce5ed;--at-blue:#176fd6;--at-navy:#071b2d;--at-surface:#fff;--at-bg:#edf2f7}
+body{background:radial-gradient(ellipse at 15% 0%,#f8fbff 0,transparent 36%),var(--at-bg);color:var(--at-ink);font-family:Inter,"Segoe UI",Arial,sans-serif}
+header{background:linear-gradient(112deg,#061522 0%,#0a2942 60%,#123e60 100%);padding:20px clamp(16px,3vw,38px);border-bottom:3px solid #e63946;box-shadow:0 8px 28px #071b2d24}
+.brand-mark{filter:drop-shadow(0 3px 6px #0003)}.brand-name{font-size:28px;letter-spacing:2.3px}.brand-sub{font-size:9px;letter-spacing:2.8px}
+.header-pill{background:#ffffff0b;border-color:#ffffff35;backdrop-filter:blur(8px)}
+.wrap{max-width:1440px;margin:28px auto;padding:0 clamp(12px,2.5vw,32px)}
+.dashboard-intro{padding:4px 2px 20px;margin-bottom:20px;border-bottom:1px solid #dce5ed;align-items:flex-end}
+.dashboard-eyebrow{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:1.8px;color:#176fd6}
+.dashboard-eyebrow:before{content:"";display:block;width:20px;height:2px;background:#e63946}
+.dashboard-intro h1{font-size:clamp(25px,3vw,34px);font-weight:780;letter-spacing:-1.1px;color:#0a2034}
+.dashboard-intro p{font-size:13px;color:#718195;margin-top:7px}
+.dashboard-live{border-radius:8px;background:#fff;border-color:#d6e1eb;padding:9px 12px;box-shadow:0 3px 10px #0b22370a}
+.cards{gap:14px;margin-bottom:22px}
+.card{min-height:128px;padding:22px 22px 18px;border:1px solid #dce5ed;border-radius:13px;background:linear-gradient(145deg,#fff,#fbfdff);box-shadow:0 4px 14px #10263b08;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.card:before{width:3px;background:#176fd6}
+.card:after{right:18px;top:16px;font-size:26px;opacity:.13;filter:grayscale(1)}
+.card:nth-child(2):before{background:#64748b}.card:nth-child(3):before{background:#dc3545}.card:nth-child(4):before{background:#0e7490}
+.card:hover{transform:translateY(-3px);border-color:#c5d7e7;box-shadow:0 12px 28px #10263b12}
+.label{font-size:10px;letter-spacing:1.1px;color:#6b7e90;font-weight:800}
+.value{font-size:clamp(27px,2.5vw,34px);letter-spacing:-1px;color:#10263b;margin-top:12px;font-variant-numeric:tabular-nums}
+nav{position:relative;gap:5px;padding:6px;margin-bottom:22px;background:#fff;border:1px solid #dce5ed;border-radius:12px;box-shadow:0 4px 16px #10263b08;flex-wrap:wrap}
+nav button{border-radius:8px;padding:11px 14px;color:#617386;font-size:12px;font-weight:750;letter-spacing:.1px}
+nav button:hover{background:#f1f6fb;border-color:#e0e9f1;color:#17304a}
+nav button.active{background:#0b2943;color:#fff;border-color:#0b2943;box-shadow:0 3px 8px #0b29432b}
+.primary{background:#176fd6!important;border-color:#176fd6!important;box-shadow:0 3px 8px #176fd624}.primary:hover{background:#0e5db8!important}
+.dashboard-grid{gap:18px;margin-bottom:24px}
+.dash-panel,.panel{border:1px solid #dce5ed;border-radius:13px;background:#fff;box-shadow:0 4px 16px #10263b08}
+.dash-panel{padding:21px 22px}
+.dash-head{margin-bottom:17px;align-items:center}
+.dash-title{font-size:15px;font-weight:800;letter-spacing:-.15px;color:#142e45}
+.dash-sub{font-size:11px;color:#8492a1;margin-top:5px}
+.dashboard-grid .dash-panel:before{width:3px;background:linear-gradient(180deg,#176fd6,#70b6ff)}
+.dashboard-grid .alert-panel-clickable:before{background:linear-gradient(180deg,#e63946,#ff9a9f)}
+.activity-item,.alert-item{border:1px solid #e6edf3;border-radius:9px;background:#fbfdff;padding:12px 13px;transition:background .15s,border-color .15s}
+.activity-item:hover,.alert-item:hover{background:#f3f8fd;border-color:#d4e2ef}
+.activity-ref,.alert-ref{font-size:12px;font-weight:750;color:#19364f}
+.activity-meta,.alert-meta{font-size:11px;color:#7b8b9a}
+.alert-count{border-radius:7px;font-variant-numeric:tabular-nums}
+.panel{padding:20px;box-shadow:0 5px 18px #10263b09}
+th{background:#f4f7fa;color:#6b7e90;font-size:10px;letter-spacing:.8px;font-weight:800}
+th,td{padding:13px 10px;border-bottom:1px solid #e8eef4}
+.tool-row:hover{background:#f3f8fc}
+input,select{border-color:#cbd8e3;border-radius:8px}
+input:focus,select:focus{border-color:#176fd6;box-shadow:0 0 0 3px #176fd61a}
+.badge{padding:5px 9px;font-size:11px;letter-spacing:.1px}
+.modalbox{border:1px solid #dce5ed;box-shadow:0 24px 80px #071b2d33;border-radius:16px}
+@media(max-width:900px){.wrap{margin:20px auto}.card{min-height:112px;padding:17px}.value{font-size:27px}.dashboard-grid{gap:12px}.dash-panel{padding:17px}}
+@media(max-width:600px){header{padding:15px 14px}.brand-name{font-size:22px}.brand-sub{letter-spacing:1.7px}.header-right{gap:7px;font-size:10px}.wrap{padding:0 10px;margin-top:17px}.dashboard-intro{align-items:flex-start;gap:10px;padding-bottom:15px}.dashboard-intro h1{font-size:24px}.dashboard-intro p{max-width:240px;line-height:1.5}.dashboard-live{font-size:10px;padding:7px 8px}.cards{gap:8px}.card{min-height:100px;padding:14px 13px}.card:after{right:10px;top:10px;font-size:18px}.label{font-size:9px;letter-spacing:.6px}.value{font-size:23px;margin-top:9px}nav{gap:4px;padding:5px;margin-bottom:14px}nav button{padding:9px 10px;font-size:11px}.dash-panel,.panel{padding:14px}.dashboard-grid{gap:10px}th,td{padding:10px 7px;font-size:12px}}
+
 .dashboard-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 18px;padding:2px 1px}.dashboard-eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#176fd6;margin-bottom:5px}.dashboard-intro h1{margin:0;color:#10263b;font-size:25px;letter-spacing:-.6px}.dashboard-intro p{margin:5px 0 0;color:#718096;font-size:13px}.dashboard-live{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:8px 11px;border:1px solid #dce6ef;border-radius:999px;background:#fff;color:#53677b;font-size:12px;font-weight:700}.dashboard-live-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #dcfce7}.card{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.card:hover{transform:translateY(-2px);box-shadow:0 9px 24px #12223512;border-color:#cbd9e6}.card .label{max-width:88%;line-height:1.4}.dashboard-grid .dash-panel{position:relative;overflow:hidden}.dashboard-grid .dash-panel:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#176fd6;opacity:.85}.dashboard-grid .alert-panel-clickable:before{background:#e63946}.dashboard-grid .dash-panel:focus-within,.dashboard-grid .dash-panel:hover{box-shadow:0 8px 24px #12223512}
 /* ALPATOOL — visual pass 2 : navigation + dashboard */
 body{background:#eef2f6;color:#122235}
